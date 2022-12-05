@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<otrs_package version="1.0">
+    <Name>Znuny-SearchFrontend</Name>
+    <Version>6.3.0</Version>
+    <Framework>6.4.x</Framework>
+    <Framework>6.3.x</Framework>
+    <Framework>6.2.x</Framework>
+    <Framework>6.1.x</Framework>
+    <Framework>6.0.x</Framework>
+    <Vendor>Znuny GmbH</Vendor>
+    <URL>http://znuny.com/</URL>
+    <License>GNU AFFERO GENERAL PUBLIC LICENSE Version 3, November 2007</License>
+    <Description Lang="en">A package containing functionalities related to search engines.</Description>
+    <PackageRequired Version="6.3.0">Znuny-Search</PackageRequired>
+    <Filelist>
+        <File Permission="660" Location="Kernel/Config/Files/XML/ZnunySearchFrontend.xml"/>
+        <File Permission="660" Location="Kernel/Modules/ZnunySearchFrontend.pm"/>
+        <File Permission="660" Location="var/packagesetup/ZnunySearchFrontend.pm"/>
+        <File Permission="660" Location="var/httpd/htdocs/js/Core.Agent.Admin.ZnunySearchFrontend.js"/>
+        <File Permission="660" Location="var/httpd/htdocs/skins/Agent/default/css/Core.Agent.Admin.ZnunySearchFrontend.css"/>
+        <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/vue-3.2.45/vue.global.js"/>
+        <File Permission="660" Location="Kernel/Output/HTML/Templates/Standard/ZnunySearchFrontend.tt"/>
+    </Filelist>
+
+    <CodeInstall Type="post"><![CDATA[
+        $Kernel::OM->Get('var::packagesetup::ZnunySearchFrontend')->CodeInstall();
+    ]]></CodeInstall>
+    <CodeUninstall Type="pre"><![CDATA[
+        $Kernel::OM->Get('var::packagesetup::ZnunySearchFrontend')->CodeUninstall();
+    ]]></CodeUninstall>
+    <CodeReinstall Type="post"><![CDATA[
+        $Kernel::OM->Get('var::packagesetup::ZnunySearchFrontend')->CodeReinstall();
+    ]]></CodeReinstall>
+</otrs_package>

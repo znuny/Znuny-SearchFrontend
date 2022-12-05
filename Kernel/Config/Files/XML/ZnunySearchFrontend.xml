@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<otrs_config version="2.0" init="Application">
+        <Setting Name="Loader::ZnunySearchFrontendOperators###000-Framework" Required="0" Valid="1">
+            <Description Translatable="1">Register search engines.</Description>
+            <Navigation>Core::Search</Navigation>
+            <Value>
+                <Hash>
+                    <Item Key="TicketID">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                            <Item Key="!=">!=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Title">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                            <Item Key="!=">!=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="TicketNumber">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                            <Item Key="!=">!=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="OwnerID">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                            <Item Key="!=">!=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Priority">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Service">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="State">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Queue">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="SLA">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Type">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                        </Hash>
+                    </Item>
+                </Hash>>
+            </Value>
+        </Setting>
+        <Setting Name="Loader::ZnunySearchFrontendFields###000-Framework" Required="0" Valid="1">
+            <Description Translatable="1">Register search engines.</Description>
+            <Navigation>Core::Search</Navigation>
+            <Value>
+                <Hash>
+                    <Item Key="Ticket">
+                        <Hash>
+                            <Item Key="TicketID">customtext</Item>
+                            <Item Key="Title">customtext</Item>
+                            <Item Key="TicketNumber">customtext</Item>
+                            <Item Key="OwnerID">customtext</Item>
+                            <Item Key="Priority">api|PriorityList</Item>
+                            <Item Key="Service">api|ServiceList</Item>
+                            <Item Key="State">api|StateList</Item>
+                            <Item Key="Queue">api|GetAllQueues</Item>
+                            <Item Key="SLA">api|SLAList</Item>
+                            <Item Key="Type">api|TypeList</Item>
+                        </Hash>
+                    </Item>
+                </Hash>
+            </Value>
+        </Setting>
+        <Setting Name="Frontend::Module###ZnunySearchFrontend" Required="0" Valid="1">
+        <Description Translatable="1">Frontend module registration for the agent interface.</Description>
+        <Navigation>Frontend::Admin::ModuleRegistration</Navigation>
+        <Value>
+            <Item ValueType="FrontendRegistration">
+                <Hash>
+                    <Item Key="GroupRo">
+                        <Array>
+                        </Array>
+                    </Item>
+                    <Item Key="Group">
+                        <Array>
+                            <Item>admin</Item>
+                        </Array>
+                    </Item>
+                    <Item Key="Description">ZnunySearchFrontend</Item>
+                    <Item Key="Title" Translatable="1">Search engine GUI</Item>
+                    <Item Key="NavBarName">ZnunySearchFrontend</Item>
+                </Hash>
+            </Item>
+        </Value>
+    </Setting>
+    <Setting Name="Loader::Module::ZnunySearchFrontend###000-Framework" Required="0" Valid="1">
+        <Description Translatable="1">Loader module registration for the agent interface.</Description>
+        <Navigation>Frontend::Admin::ModuleRegistration::Loader</Navigation>
+        <Value>
+            <Hash>
+                <Item Key="CSS">
+                    <Array>
+                        <Item>Core.Agent.Admin.ZnunySearchFrontend.css</Item>
+                    </Array>
+                </Item>
+                <Item Key="JavaScript">
+                    <Array>
+                        <Item>thirdparty/vue-3.2.45/vue.global.js</Item>
+                        <Item>Core.Agent.Admin.ZnunySearchFrontend.js</Item>
+                        <Item>Core.UI.AllocationList.js</Item>
+                        <Item>Core.Agent.TableFilters.js</Item>
+                        <Item>Core.Agent.Overview.js</Item>
+                        <!-- <Item>Core.Agent.TicketSplit.js</Item> -->
+                    </Array>
+                </Item>
+            </Hash>
+        </Value>
+    </Setting>
+</otrs_config>

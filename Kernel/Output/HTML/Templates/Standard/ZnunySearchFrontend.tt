@@ -1,0 +1,98 @@
+<div class="SearchKontainer" id="app">
+    <!-- <div class="SearchOptions">
+        <div><input type="checkbox" v-model="ShowTime" name=""> Show Request Time</div>
+    </div> -->
+    <div class="zs-box" id="zs-box">
+        <div class="zs-dropdownwrap">
+            <button 
+                class="zs-dropdowntoggle" 
+                type="button" 
+                :aria-expanded="Engines"
+                @click="ToggleEngines"
+            >
+                [% Data.ActiveEngine %]&nbsp;&nbsp;&nbsp;
+                [% IF Data.Connection %]
+                    <i style="color:green" class="fa fa-check"></i>
+                [% ELSE %]
+                    <i style="color:red" class="fa fa-times"></i>
+                [% END %]&nbsp;&nbsp;
+                <svg class="zs-dropdownsymbol" viewBox="0 0 16 16"><path d="M16 5.5l-1.5-1.5-6.5 6.5-6.5-6.5-1.5 1.5 8 8 8-8z"></path></svg>
+            </button>
+
+            <div class="zs-dropdown" id="EnginesBox" v-if="Engines" tabindex="0">
+                <div class="zs-dropdowncontent">
+                            
+                    <div v-if="lastsearches.length === 0" class="zs-dropdownmessage" >
+                        You don't have any other engines.
+                    </div>
+                    <ul  v-else class="zs-dropdownlist">
+                        <li v-for="Search in LastSearches">
+                            <button type="button" class="zs-option">
+                                {{ Search }}
+                            </button>
+                        </li>
+                    </ul>
+                            
+            </div>
+            </div>
+        </div>
+
+        <form class="zs-scrollable" role="search" @submit="Submit">
+            <ul class="zs-tokens" ref="dropdownlist" v-click-outside="HideDropdown">
+                <template v-for="(Param, ParamIndex) in Params">
+                     <li v-if="Param.type === 'dropdown'" class="zs-dropdown" ref="dropdown">
+                        <div class="zs-dropdowncontent">
+                            <div class="zs-dropdownmessage">{{ DropdownMessage }}</div>
+                            <svg v-if="Loading" class="zs-loader" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200px" height="200px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
+                                <circle cx="50" cy="50" fill="none" stroke="#fff" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138">
+                                    <animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform>
+                                </circle>
+                            </svg>
+                            <ul class="zs-dropdownlist">
+                                <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :id="'item'+entryindex" ref="dropdownitem">
+                                    <button 
+                                        ref="dropdownbutton" 
+                                        @keydown="dropdownKeystroke"
+                                        @click="chooseFromList(entry, entryindex)"
+                                        type="button" 
+                                        class="zs-option"
+                                    >
+                                        {{ entry.text }}
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li v-if="Param.label" class="zs-token">
+                        <ul class="zs-tokenwrap">
+                            <li :ref="'tokenLabel'+ParamIndex"class="zs-tokenpart zs-label">
+                                {{ Param.label}} 
+                            </li>
+                            <li :ref="'tokenOperator'+ParamIndex" v-if="Param.operator" class="zs-tokenpart zs-operator">{{Param.operator.text}}</li>
+                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="changeTokenValue(Param)" class="zs-tokenchange" type="button">{{ Param.text }}</button></li>
+                        </ul>
+                        <button v-if="Param.value" class="zs-tokenremove" type="button" @click="removeToken(ParamIndex)">&times;</button>
+                    </li>
+                    <li v-if="Param.type === 'input'" class="zs-inputwrap" ref="inputWrap">
+                        <input 
+                            ref="inputField" 
+                            v-model="InputText" 
+                            @click="ClickedOnInput" 
+                            @keydown="inputKeystroke"
+                            :disabled="InputDisabled"
+                            class="zs-input" 
+                            type="text" 
+                            placeholder="Click here and type." 
+                            autocomplete="off" 
+                        />
+                    </li>
+                </template>
+            </ul>
+        </form>
+        <button v-if="Params.length > 1" class="zs-clear" type="button" @click="clearAll">&times;</button>
+        <button class="zs-submit" type="button" @click="Submit">Search</button>
+    </div>
+    <div id="TicketList">
+
+    </div>
+</div>
