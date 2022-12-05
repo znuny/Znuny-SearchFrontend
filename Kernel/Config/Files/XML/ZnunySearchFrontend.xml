@@ -59,7 +59,7 @@
                             <Item Key="=">=</Item>
                         </Hash>
                     </Item>
-                </Hash>>
+                </Hash>
             </Value>
         </Setting>
         <Setting Name="Loader::ZnunySearchFrontendFields###000-Framework" Required="0" Valid="1">

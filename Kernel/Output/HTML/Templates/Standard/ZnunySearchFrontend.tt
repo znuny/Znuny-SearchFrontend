@@ -1,12 +1,20 @@
-<div class="SearchKontainer" id="app">
+# --
+# Copyright (C) 2012-2022 Znuny GmbH, http://znuny.com/
+# --
+# This software comes with ABSOLUTELY NO WARRANTY. For details, see
+# the enclosed file COPYING for license information (AGPL). If you
+# did not receive this file, see http://www.gnu.org/licenses/agpl.txt.
+# --
+
+<div class="SearchKontainer" id="SearchBox">
     <!-- <div class="SearchOptions">
         <div><input type="checkbox" v-model="ShowTime" name=""> Show Request Time</div>
     </div> -->
     <div class="zs-box" id="zs-box">
         <div class="zs-dropdownwrap">
-            <button 
-                class="zs-dropdowntoggle" 
-                type="button" 
+            <button
+                class="zs-dropdowntoggle"
+                type="button"
                 :aria-expanded="Engines"
                 @click="ToggleEngines"
             >
@@ -21,7 +29,7 @@
 
             <div class="zs-dropdown" id="EnginesBox" v-if="Engines" tabindex="0">
                 <div class="zs-dropdowncontent">
-                            
+
                     <div v-if="lastsearches.length === 0" class="zs-dropdownmessage" >
                         You don't have any other engines.
                     </div>
@@ -32,7 +40,7 @@
                             </button>
                         </li>
                     </ul>
-                            
+
             </div>
             </div>
         </div>
@@ -50,11 +58,11 @@
                             </svg>
                             <ul class="zs-dropdownlist">
                                 <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :id="'item'+entryindex" ref="dropdownitem">
-                                    <button 
-                                        ref="dropdownbutton" 
+                                    <button
+                                        ref="dropdownbutton"
                                         @keydown="dropdownKeystroke"
                                         @click="chooseFromList(entry, entryindex)"
-                                        type="button" 
+                                        type="button"
                                         class="zs-option"
                                     >
                                         {{ entry.text }}
@@ -66,24 +74,24 @@
                     <li v-if="Param.label" class="zs-token">
                         <ul class="zs-tokenwrap">
                             <li :ref="'tokenLabel'+ParamIndex"class="zs-tokenpart zs-label">
-                                {{ Param.label}} 
+                                {{ Param.label}}
                             </li>
                             <li :ref="'tokenOperator'+ParamIndex" v-if="Param.operator" class="zs-tokenpart zs-operator">{{Param.operator.text}}</li>
-                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="changeTokenValue(Param)" class="zs-tokenchange" type="button">{{ Param.text }}</button></li>
+                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="changeParamValue(Param)" class="zs-tokenchange" type="button">{{ Param.text }}</button></li>
                         </ul>
                         <button v-if="Param.value" class="zs-tokenremove" type="button" @click="removeToken(ParamIndex)">&times;</button>
                     </li>
                     <li v-if="Param.type === 'input'" class="zs-inputwrap" ref="inputWrap">
-                        <input 
-                            ref="inputField" 
-                            v-model="InputText" 
-                            @click="ClickedOnInput" 
+                        <input
+                            ref="inputField"
+                            v-model="InputText"
+                            @click="ClickedOnInput"
                             @keydown="inputKeystroke"
                             :disabled="InputDisabled"
-                            class="zs-input" 
-                            type="text" 
-                            placeholder="Click here and type." 
-                            autocomplete="off" 
+                            class="zs-input"
+                            type="text"
+                            placeholder="Click here and type."
+                            autocomplete="off"
                         />
                     </li>
                 </template>

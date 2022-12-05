@@ -5,6 +5,7 @@
 // the enclosed file COPYING for license information (AGPL). If you
 // did not receive this file, see http://www.gnu.org/licenses/agpl.txt.
 // --
+// nofilter(TidyAll::Plugin::OTRS::JavaScript::ESLint)
 
 "use strict";
 
@@ -13,16 +14,17 @@ Core.Agent = Core.Agent || {};
 Core.Agent.Admin = Core.Agent.Admin || {};
 
 
-var config = []; 
+var config = [];
 
-const clickOutside = {
+var clickOutside = {
   beforeMount: (el, binding) => {
     el.clickOutsideEvent = event => {
       // here I check that click was outside the el and his children
-      if (!(el == event.target || el.contains(event.target) 
+      if (!(el == event.target || el.contains(event.target)
             || event.target.className === "zs-input"
             || event.target.className.startsWith("zs-dropdown")
             || event.target.className === "zs-option"
+            || event.target.className === "zs-submit"
             || event.target.className === "zs-dropdown")) {
         // and if it did, call method provided in attribute value
         binding.value();
@@ -37,7 +39,7 @@ const clickOutside = {
 
 const { createApp } = Vue;
 
-const zsboxapp = createApp({
+const ZnunySearchBox = createApp({
     data() {
         return {
             Engines: false,
@@ -46,10 +48,10 @@ const zsboxapp = createApp({
             Loading: false,
             InputText: '',
             InputParam: {type: 'input'},
-            currentKind: null,
-            currentLevel: null,
-            currentParamIndex: null,
-            currentDropdown: null,
+            CurrentKind: null,
+            CurrentLevel: null,
+            CurrentParamIndex: null,
+            CurrentDropdown: null,
             InputDisabled: 1,
             DropdownMessage: '',
             Labels: [],
@@ -70,12 +72,12 @@ const zsboxapp = createApp({
             }
         });
     },
-    watch: {    
+    watch: {
         InputText(newText, oldText) {
-            if (!this.currentDropdown) {
+            if (!this.CurrentDropdown) {
                 return;
             }
-            this.currentDropdown.items.forEach((item, i) => {
+            this.CurrentDropdown.items.forEach((item, i) => {
                 if (item.text.toLowerCase().indexOf(newText.toLowerCase()) > -1) {
                     item.visible = true;
                 } else {
@@ -84,13 +86,8 @@ const zsboxapp = createApp({
             });
         },
     },
-    // directives: {
-    //     'click-outside': {
-
-    //     }
-    // },
     methods: {
-        ToggleEngines(e) {  
+        ToggleEngines(e) {
             this.Engines = !this.Engines;
         },
         clearAll() {
@@ -98,9 +95,9 @@ const zsboxapp = createApp({
             this.resetCurrents();
         },
         resetCurrents() {
-            this.currentKind = null;
-            this.currentLevel = null;
-            this.currentParamIndex = null;
+            this.CurrentKind = null;
+            this.CurrentLevel = null;
+            this.CurrentParamIndex = null;
             this.removeCurrentDropdown();
 
             // remove stray Params
@@ -110,20 +107,19 @@ const zsboxapp = createApp({
                 }
             });
         },
-                    
+
         createListLevel0 () {
-            console.log('create')
-            this.currentDropdown = {
+            this.CurrentDropdown = {
                 type: 'dropdown',
                 items: []
             }
             config.forEach((item, i) => {
-                this.currentDropdown.items.push({
+                this.CurrentDropdown.items.push({
                     text: item.label,
                     visible: true
                 });
             });
-            this.Params.splice(this.currentParamIndex + 1, 0, this.currentDropdown);
+            this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
 
             // move dropdown to correct position
             this.$nextTick(() => {
@@ -136,27 +132,27 @@ const zsboxapp = createApp({
 
             // hardcoded operator list
             var myItems = [];
-            config[this.currentKind].operators.forEach((operator) => {
+            config[this.CurrentKind].operators.forEach((operator) => {
                 myItems.push({
                     text: operator.label,
                     code: operator.code,
                     visible: true
                 });
             });
-            if(config[this.currentKind].type === "api") {
+            if(config[this.CurrentKind].type === "api") {
                 myItems = [
-                    { 
+                    {
                         text: "=",
                         code: "=",
                         visible: true
                     }
-                ]; 
+                ];
             }
-            this.currentDropdown.items = myItems;
+            this.CurrentDropdown.items = myItems;
 
             // move dropdown to correct position
             this.$nextTick(() => {
-                const labelEl = this.$refs['tokenLabel'+this.currentParamIndex][0];
+                const labelEl = this.$refs['tokenLabel'+this.CurrentParamIndex][0];
                 const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth + 'px';
                 this.$refs.dropdown[0].style.left = offset;
             });
@@ -164,24 +160,24 @@ const zsboxapp = createApp({
         createListLevel2 () {
 
             // hardcoded value list
-            if (config[this.currentKind].type === 'values') {
+            if (config[this.CurrentKind].type === 'values') {
                 const myItems = [];
-                config[this.currentKind].values.forEach((value) => {
+                config[this.CurrentKind].values.forEach((value) => {
                     myItems.push({
                         text: value,
                         visible: true
                     });
                 });
-                this.currentDropdown.items = myItems;
+                this.CurrentDropdown.items = myItems;
             }
 
             // API access value list
-            if (config[this.currentKind].type === 'api') {
+            if (config[this.CurrentKind].type === 'api') {
                 const myItems = [];
                 this.Loading = true;
                 const http = new Http();
                 http
-                .get(config[this.currentKind].api)
+                .get(config[this.CurrentKind].api)
                 .then((res) => {
                     JSON.parse(res).forEach((item) => {
                         myItems.push({
@@ -189,7 +185,7 @@ const zsboxapp = createApp({
                             visible: true
                         });
                     });
-                    this.currentDropdown.items = myItems;
+                    this.CurrentDropdown.items = myItems;
                     this.Loading = false;
                 })
                 .catch((err) => {
@@ -199,115 +195,123 @@ const zsboxapp = createApp({
             }
 
             // Freetext
-            if (config[this.currentKind].type === 'customtext') {
-                this.currentDropdown.items = [];
+            if (config[this.CurrentKind].type === 'customtext') {
+                this.CurrentDropdown.items = [];
                 this.removeCurrentDropdown();
                 this.$nextTick(() => {
-                    this.$refs.inputField[0].focus();   
+                    this.$refs.inputField[0].focus();
                 });
-                            
+
             }
-            if (!this.currentDropdown) {
+            if (!this.CurrentDropdown) {
                 return;
             }
 
             // move dropdown to correct position
             this.$nextTick(() => {
-                const labelEl = this.$refs['tokenOperator'+this.currentParamIndex][0];
+                const labelEl = this.$refs['tokenOperator'+this.CurrentParamIndex][0];
                 const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth + 'px';
                 this.$refs.dropdown[0].style.left = offset;
             });
         },
         ClickedOnInput() {
-            if (this.currentParamIndex === null) {
+            if (this.CurrentParamIndex === null) {
                 this.startNewToken();
-            }         
+            }
         },
         startNewToken() {
             this.resetCurrents();
             this.moveInputToEnd();
-            this.currentParamIndex = this.Params.length - 1;
-            this.Params.splice(this.currentParamIndex, 0, { type: 'token' });
-            this.Params[this.currentParamIndex] = {
-                value: [],
-                text: ""
-            };
+            this.CurrentParamIndex = this.Params.length - 1;
+            this.Params.splice(this.CurrentParamIndex, 0, { type: 'token' });
             this.createListLevel0();
-            this.currentLevel = 0;
+            this.CurrentLevel = 0;
             this.$nextTick(() => {
             this.$refs.inputField[0].focus();
-                  
-            });            
+
+            });
         },
         removeToken(i) {
             this.Params.splice(i, 1);
             this.removeCurrentDropdown();
         },
         moveInputToEnd() {
-            const currentInputIndex = this.Params.findIndex((Param) => Param.type === 'input');
-            this.Params.splice(currentInputIndex, 1);
+            const CurrentInputIndex = this.Params.findIndex((Param) => Param.type === 'input');
+            this.Params.splice(CurrentInputIndex, 1);
             this.Params.push(this.InputParam);
         },
         moveInput() {
-            const currentInputIndex = this.Params.findIndex((Param) => Param.type === 'input');
-            this.Params.splice(currentInputIndex, 1);
-            this.Params.splice(this.currentParamIndex, 0, this.InputParam);
+            const CurrentInputIndex = this.Params.findIndex((Param) => Param.type === 'input');
+            this.Params.splice(CurrentInputIndex, 1);
+            this.Params.splice(this.CurrentParamIndex, 0, this.InputParam);
         },
         removeCurrentDropdown() {
-            if (this.currentDropdown) {
-                const currentDropdownIndex = this.Params.findIndex((Param) => Param.type === 'dropdown');
-                this.Params.splice(currentDropdownIndex, 1);
+            if (this.CurrentDropdown) {
+                const CurrentDropdownIndex = this.Params.findIndex((Param) => Param.type === 'dropdown');
+                this.Params.splice(CurrentDropdownIndex, 1);
             }
-            this.currentDropdown = null;
+            this.CurrentDropdown = null;
         },
         chooseFromList(entry, entryindex) {
 
-            if (this.currentLevel === 0) {
-                this.currentKind = entryindex;
-                this.Params[this.currentParamIndex].label = entry.text;
+            if (this.CurrentLevel === 0) {
+                this.CurrentKind = entryindex;
+                this.Params[this.CurrentParamIndex].label = entry.text;
                 this.createListLevel1();
-                this.currentLevel = 1;
+                this.CurrentLevel = 1;
                 this.$refs.inputField[0].focus();
                 this.InputText = '';
-            } else if (this.currentLevel === 1) {
-                this.Params[this.currentParamIndex].operator = entry;
+            } else if (this.CurrentLevel === 1) {
+                this.Params[this.CurrentParamIndex].operator = entry;
                 this.createListLevel2();
-                this.currentLevel = 2;
+                this.CurrentLevel = 2;
                 this.$refs.inputField[0].focus();
                 this.InputText = '';
-            } else if (this.currentLevel === 2) {
-                
-                var index = this.Params[this.currentParamIndex].value.indexOf(entry.text);
+            } else if (this.CurrentLevel === 2) {
 
-                if( index > -1) {
-                    this.Params[this.currentParamIndex].value.splice(index, 1);
-                    this.Params[this.currentParamIndex].text = JSON.stringify(this.Params[this.currentParamIndex].value).slice(1,-1);
-                    $('#item'+entryindex).removeClass("active-zs-option");
+                if(this.Params[this.CurrentParamIndex].value) {
+                    var index = this.Params[this.CurrentParamIndex].value.indexOf(entry.text);
+
+                    if( index > -1) {
+                        this.Params[this.CurrentParamIndex].value.splice(index, 1);
+                        this.Params[this.CurrentParamIndex].text = JSON.stringify(this.Params[this.CurrentParamIndex].value).slice(1,-1);
+                        this.removeActiveClass(entryindex);
+                    }
+                    else {
+                        this.Params[this.CurrentParamIndex].value.push(entry.text);
+                        this.Params[this.CurrentParamIndex].text = JSON.stringify(this.Params[this.CurrentParamIndex].value).slice(1,-1);
+                        this.addActiveClass(entryindex);
+                    }
+                } else {
+                    this.Params[this.CurrentParamIndex].value = [];
+                    this.Params[this.CurrentParamIndex].value.push(entry.text);
+                    this.Params[this.CurrentParamIndex].text = JSON.stringify(this.Params[this.CurrentParamIndex].value).slice(1,-1);
+                    this.addActiveClass(entryindex);
                 }
-                else {
-                    this.Params[this.currentParamIndex].value.push(entry.text);
-                    this.Params[this.currentParamIndex].text = JSON.stringify(this.Params[this.currentParamIndex].value).slice(1,-1);
-                    $('#item'+entryindex).addClass("active-zs-option");
-                }
-                
-            }              
+            }
         },
-        changeTokenValue(Param) {
+        addActiveClass(entryindex) {
+            $('#item'+entryindex).addClass("active-zs-option");
+        },
+        removeActiveClass(entryindex) {
+            $('#item'+entryindex).removeClass("active-zs-option");
+        },
+        changeParamValue(Param) {
 
             this.removeCurrentDropdown();
-                        
-            this.currentLevel = 2;
-            this.currentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
-            this.currentKind = config.findIndex((item) => item.label === Param.label);
 
-            this.currentDropdown = {
+            this.CurrentLevel = 2;
+            this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
+            this.CurrentKind = config.findIndex((item) => item.label === Param.label);
+
+            this.CurrentDropdown = {
                 type: 'dropdown',
                 items: []
             }
-            this.Params.splice(this.currentParamIndex + 1, 0, this.currentDropdown);
+            this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
             this.createListLevel2();
             this.$nextTick(() => {
-                this.$refs.inputField[0].focus();   
+                this.$refs.inputField[0].focus();
             });
 
         },
@@ -342,23 +346,26 @@ const zsboxapp = createApp({
             // pressing up: set focus to dropdown list, last entry
             if (e.which === 38) {
                 e.preventDefault();
-                this.$refs.dropdownbutton[this.currentDropdown.items.length - 1].focus();
-                
+                this.$refs.dropdownbutton[this.CurrentDropdown.items.length - 1].focus();
+
             }
 
-            // pressing return 
+            // pressing return
             if (e.which === 13 && this.InputText.length > 0) {
                 e.preventDefault();
-                this.Params[this.currentParamIndex].value = this.InputText;
+                this.Params[this.CurrentParamIndex].value = this.InputText;
                 this.resetCurrents();
                 this.InputText = '';
             }
         },
         HideDropdown() {
-            if(this.currentLevel < 2 || !(this.Params[this.currentParamIndex].value.length)) {
-                this.removeToken(this.currentParamIndex);
+            if(this.CurrentLevel < 2 || !(this.Params[this.CurrentParamIndex].value.length)) {
+                this.removeToken(this.CurrentParamIndex);
             }
-            this.resetCurrents();
+            this.CurrentKind = null;
+            this.CurrentLevel = null;
+            this.CurrentParamIndex = null;
+            this.removeCurrentDropdown();
         },
         Submit(e) {
             var LookupFields = [ "Queue", "State", "Type", "Priority", "SLA", "Service" ];
@@ -379,23 +386,23 @@ const zsboxapp = createApp({
                     if(!Exist) {
                         QueryParams[Field] = [
                             {
-                                Operator: Operator, 
-                                Value:  Value  
+                                Operator: Operator,
+                                Value:  Value
                             }
                         ];
                     }
                     else {
-                        QueryParams[Field].push({ 
+                        QueryParams[Field].push({
                             Operator: Operator,
-                            Value: Value  
+                            Value: Value
                         });
                     }
                 }
-                
+
             }
             for( let Param of this.Params ) {
-                console.log(Param)
                 var ParamValue = Param.value
+
                 if (Param.type === 'token') {
 
                     try {
@@ -431,11 +438,10 @@ const zsboxapp = createApp({
     },
 });
 
-zsboxapp.directive('click-outside', clickOutside);
+ZnunySearchBox.directive('click-outside', clickOutside);
 
-zsboxapp.mount('#app');
+ZnunySearchBox.mount('#SearchBox');
 // helper functions
 
 // https://github.com/jakecyr/slim-javascript-http-request
 function Http(){function n(e,t,n){var o=new XMLHttpRequest,r=void 0,s=void 0,i={};if("GET"==e)o.open(e,t,!0),o.send();else{if("POST"!=e)return console.error(e,"method not supported");o.open("POST",t,!0),o.setRequestHeader("Content-type","application/x-www-form-urlencoded");var u=[];for(var a in n=n||{})u.push(a+"="+encodeURIComponent(n[a]||""));o.send(u.join("&"))}return o.onreadystatechange=function(){if(4==this.readyState){var e=o.getResponseHeader("content-type");200==this.status?r&&r("application/json"==e?JSON.parse(o.responseText):o.responseText):s&&s({status:o.status,body:o.responseText})}},i.then=function(e){return r=e,i},i.catch=function(e){return s=e,i},i}this.get=function(e){return n("GET",e)},this.post=function(e,t){return n("POST",e,t)}}
-

@@ -20,7 +20,7 @@ our @ObjectDependencies = (
 
 =head1 NAME
 
-var::packagesetup::ZnunySearch - code to execute during package installation
+var::packagesetup::ZnunySearchFrontend - code to execute during package installation
 
 =head1 PUBLIC INTERFACE
 
