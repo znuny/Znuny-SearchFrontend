@@ -178,19 +178,21 @@ sub Run {
 
     if ( $Self->{Subaction} eq "Search" ) {
 
+        my $GeneralStartTime = Time::HiRes::time();
+
         my $Result = $Self->{SearchObject}->Search(
             Objects     => ["Ticket"],
             QueryParams => $GetParam{QueryParams},
             Fields      => [ ["TicketID"] ],
             ResultType  => "ARRAY"
         );
-
-        @{ $GetParam{TicketIDs} } = map { $_ => $_->{TicketID} } @{ $Result->{Ticket} };
+        my $TicketIDs;
+        @{$TicketIDs} = map { $_->{TicketID} } @{ $Result->{Ticket} };
 
         my $Response = $LayoutObject->JSONEncode(
             Data => {
                 HTML => $Self->_ShowTicketList(
-                    TicketIDs => $GetParam{TicketIDs},
+                    TicketIDs => $TicketIDs,
                 )
             }
         );
