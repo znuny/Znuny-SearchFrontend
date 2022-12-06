@@ -15,8 +15,8 @@
             <button
                 class="zs-dropdowntoggle"
                 type="button"
-                :aria-expanded="Engines"
-                @click="ToggleEngines"
+                :aria-expanded="SavedSearches"
+                @click="ToggleSavedSearches"
             >
                 [% Data.ActiveEngine %]&nbsp;&nbsp;&nbsp;
                 [% IF Data.Connection %]
@@ -27,11 +27,11 @@
                 <svg class="zs-dropdownsymbol" viewBox="0 0 16 16"><path d="M16 5.5l-1.5-1.5-6.5 6.5-6.5-6.5-1.5 1.5 8 8 8-8z"></path></svg>
             </button>
 
-            <div class="zs-dropdown" id="EnginesBox" v-if="Engines" tabindex="0">
+            <div class="zs-dropdown" id="SavedSearchesBox" v-if="SavedSearches" tabindex="0">
                 <div class="zs-dropdowncontent">
 
-                    <div v-if="lastsearches.length === 0" class="zs-dropdownmessage" >
-                        You don't have any other engines.
+                    <div v-if="LastSearches.length === 0" class="zs-dropdownmessage" >
+                        You don't have any saved queries.
                     </div>
                     <ul  v-else class="zs-dropdownlist">
                         <li v-for="Search in LastSearches">
@@ -57,7 +57,7 @@
                                 </circle>
                             </svg>
                             <ul class="zs-dropdownlist">
-                                <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :id="'item'+entryindex" ref="dropdownitem">
+                                <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :class="{ 'active-zs-option': isActive(entry.text) }" ref="dropdownitem">
                                     <button
                                         ref="dropdownbutton"
                                         @keydown="dropdownKeystroke"
@@ -77,7 +77,7 @@
                                 {{ Param.label}}
                             </li>
                             <li :ref="'tokenOperator'+ParamIndex" v-if="Param.operator" class="zs-tokenpart zs-operator">{{Param.operator.text}}</li>
-                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="changeParamValue(Param)" class="zs-tokenchange" type="button">{{ Param.text }}</button></li>
+                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="changeParamValue(Param)" class="zs-tokenchange" type="button" v-html="ParamValueText(Param.value)"></button></li>
                         </ul>
                         <button v-if="Param.value" class="zs-tokenremove" type="button" @click="removeToken(ParamIndex)">&times;</button>
                     </li>

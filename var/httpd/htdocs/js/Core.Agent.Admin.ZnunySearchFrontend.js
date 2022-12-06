@@ -22,9 +22,9 @@ var clickOutside = {
       // here I check that click was outside the el and his children
       if (!(el == event.target || el.contains(event.target)
             || event.target.className === "zs-input"
-            || event.target.className.startsWith("zs-dropdown")
             || event.target.className === "zs-option"
             || event.target.className === "zs-submit"
+            || event.target.className === "zs-tokenremove"
             || event.target.className === "zs-dropdown")) {
         // and if it did, call method provided in attribute value
         binding.value();
@@ -42,7 +42,7 @@ const { createApp } = Vue;
 const ZnunySearchBox = createApp({
     data() {
         return {
-            Engines: false,
+            SavedSearches: false,
             LastSearches: [],
             Params: [],
             Loading: false,
@@ -87,8 +87,8 @@ const ZnunySearchBox = createApp({
         },
     },
     methods: {
-        ToggleEngines(e) {
-            this.Engines = !this.Engines;
+        ToggleSavedSearches(e) {
+            this.SavedSearches = !this.SavedSearches;
         },
         clearAll() {
             this.Params = [this.InputParam];
@@ -158,6 +158,7 @@ const ZnunySearchBox = createApp({
             });
         },
         createListLevel2 () {
+            this.CurrentDropdown.items = []
 
             // hardcoded value list
             if (config[this.CurrentKind].type === 'values') {
@@ -218,6 +219,9 @@ const ZnunySearchBox = createApp({
             if (this.CurrentParamIndex === null) {
                 this.startNewToken();
             }
+            else if(this.Params[this.CurrentParamIndex].value || this.CurrentLevel === 0) {
+                this.HideDropdown();
+            }
         },
         startNewToken() {
             this.resetCurrents();
@@ -227,8 +231,7 @@ const ZnunySearchBox = createApp({
             this.createListLevel0();
             this.CurrentLevel = 0;
             this.$nextTick(() => {
-            this.$refs.inputField[0].focus();
-
+                this.$refs.inputField[0].focus();
             });
         },
         removeToken(i) {
@@ -255,6 +258,13 @@ const ZnunySearchBox = createApp({
         chooseFromList(entry, entryindex) {
 
             if (this.CurrentLevel === 0) {
+                for(var Param of this.Params) {
+                    if(Param.label === entry.text) {
+                        this.removeCurrentDropdown();
+                        this.changeParamValue(Param);
+                        return;
+                    }
+                }
                 this.CurrentKind = entryindex;
                 this.Params[this.CurrentParamIndex].label = entry.text;
                 this.createListLevel1();
@@ -274,46 +284,67 @@ const ZnunySearchBox = createApp({
 
                     if( index > -1) {
                         this.Params[this.CurrentParamIndex].value.splice(index, 1);
-                        this.Params[this.CurrentParamIndex].text = JSON.stringify(this.Params[this.CurrentParamIndex].value).slice(1,-1);
-                        this.removeActiveClass(entryindex);
+                        if(!this.Params[this.CurrentParamIndex].value.length) {
+                            this.Params[this.CurrentParamIndex].value = null;
+                        }
                     }
                     else {
                         this.Params[this.CurrentParamIndex].value.push(entry.text);
-                        this.Params[this.CurrentParamIndex].text = JSON.stringify(this.Params[this.CurrentParamIndex].value).slice(1,-1);
-                        this.addActiveClass(entryindex);
                     }
                 } else {
                     this.Params[this.CurrentParamIndex].value = [];
                     this.Params[this.CurrentParamIndex].value.push(entry.text);
-                    this.Params[this.CurrentParamIndex].text = JSON.stringify(this.Params[this.CurrentParamIndex].value).slice(1,-1);
-                    this.addActiveClass(entryindex);
                 }
             }
         },
-        addActiveClass(entryindex) {
-            $('#item'+entryindex).addClass("active-zs-option");
+        ParamValueText(values) {
+            var Result = "";
+
+            if(!values) return Result;
+            if(typeof values === "string") return values;
+
+            for(var value of values) {
+                if(values.length > 1) {
+                    return "<b>..+" + (values.length-1) + "</b>, "+values[values.length-1];
+                }
+                if(values.indexOf(value) === 0) {
+                    Result += value;
+                }
+                else {
+                    Result += ", "+value;
+                }
+            }
+            return Result;
         },
-        removeActiveClass(entryindex) {
-            $('#item'+entryindex).removeClass("active-zs-option");
+        isActive(entrytext) {
+            var Param = this.Params[this.CurrentParamIndex];
+
+            if(this.CurrentLevel === 2 && Param.value) {
+                if(Param.value.indexOf(entrytext) > -1) {
+                    return 1;
+                }
+            }
+            return 0;
         },
         changeParamValue(Param) {
-
-            this.removeCurrentDropdown();
-
-            this.CurrentLevel = 2;
-            this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
-            this.CurrentKind = config.findIndex((item) => item.label === Param.label);
-
-            this.CurrentDropdown = {
-                type: 'dropdown',
-                items: []
+            if(this.CurrentDropdown) {
+                this.HideDropdown();
             }
-            this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
-            this.createListLevel2();
-            this.$nextTick(() => {
-                this.$refs.inputField[0].focus();
-            });
+            else {
+                this.CurrentLevel = 2;
+                this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
+                this.CurrentKind = config.findIndex((item) => item.label === Param.label);
 
+                this.CurrentDropdown = {
+                    type: 'dropdown',
+                    items: []
+                }
+                this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
+                this.createListLevel2();
+                this.$nextTick(() => {
+                    this.$refs.inputField[0].focus();
+                });
+            }
         },
         dropdownKeystroke(e) {
             // down
@@ -359,13 +390,27 @@ const ZnunySearchBox = createApp({
             }
         },
         HideDropdown() {
-            if(this.CurrentLevel < 2 || !(this.Params[this.CurrentParamIndex].value.length)) {
+            var HideWithTokenRemove = () => {
                 this.removeToken(this.CurrentParamIndex);
+                this.CurrentLevel = null;
+                this.CurrentParamIndex = null;
+                this.removeCurrentDropdown();
             }
-            this.CurrentKind = null;
-            this.CurrentLevel = null;
-            this.CurrentParamIndex = null;
-            this.removeCurrentDropdown();
+
+            if(this.CurrentLevel !== null && this.CurrentLevel < 2) {
+                HideWithTokenRemove();
+            } else if (this.CurrentLevel === 2) {
+                if(!this.Params[this.CurrentParamIndex].value) {
+                    HideWithTokenRemove();
+                }
+                else {
+                    this.CurrentKind = null;
+                    this.CurrentLevel = null;
+                    this.CurrentParamIndex = null;
+                    this.removeCurrentDropdown();
+                }
+            }
+
         },
         Submit(e) {
             var LookupFields = [ "Queue", "State", "Type", "Priority", "SLA", "Service" ];
@@ -403,8 +448,7 @@ const ZnunySearchBox = createApp({
             for( let Param of this.Params ) {
                 var ParamValue = Param.value
 
-                if (Param.type === 'token') {
-
+                if (Param.type === 'token' && Param.value) {
                     try {
                         ParamValue = JSON.parse(ParamValue)
                     } catch (e) {}

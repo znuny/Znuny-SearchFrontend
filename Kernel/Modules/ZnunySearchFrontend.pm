@@ -178,7 +178,7 @@ sub Run {
 
     if ( $Self->{Subaction} eq "Search" ) {
 
-        my $GeneralStartTime = Time::HiRes::time();
+        # my $GeneralStartTime = Time::HiRes::time();
 
         my $Result = $Self->{SearchObject}->Search(
             Objects     => ["Ticket"],
@@ -186,6 +186,9 @@ sub Run {
             Fields      => [ ["TicketID"] ],
             ResultType  => "ARRAY"
         );
+
+        # my $GeneralStopTime = Time::HiRes::time();
+
         my $TicketIDs;
         @{$TicketIDs} = map { $_->{TicketID} } @{ $Result->{Ticket} };
 
