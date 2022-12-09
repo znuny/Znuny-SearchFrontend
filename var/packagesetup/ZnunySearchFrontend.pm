@@ -1,14 +1,12 @@
 # --
-# Copyright (C) 2012-2022 Znuny GmbH, http://znuny.com/
+# Copyright (C) 2012-2022 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (AGPL). If you
 # did not receive this file, see http://www.gnu.org/licenses/agpl.txt.
 # --
 
-## nofilter(TidyAll::Plugin::Znuny4OTRS::Legal::AGPLValidator)
-
-package var::packagesetup::ZnunySearchFrontend;    ## no critic
+package var::packagesetup::ZnunySearchFrontend;
 
 use strict;
 use warnings;

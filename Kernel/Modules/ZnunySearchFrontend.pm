@@ -1,18 +1,17 @@
 # --
-# Copyright (C) 2012-2022 Znuny GmbH, http://znuny.com/
+# Copyright (C) 2012-2022 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
-# the enclosed file COPYING for license information (GPL). If you
-# did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
+# the enclosed file COPYING for license information (AGPL). If you
+# did not receive this file, see http://www.gnu.org/licenses/agpl.txt.
 # --
-## nofilter(TidyAll::Plugin::Znuny4OTRS::Legal::AGPLValidator)
 
 package Kernel::Modules::ZnunySearchFrontend;
 
 use strict;
 use warnings;
 
-use Kernel::System::VariableCheck qw(IsHashRefWithData IsArrayRefWithData);
+use Kernel::System::VariableCheck qw(:all);
 
 our $ObjectManagerDisabled = 1;
 
@@ -34,12 +33,10 @@ sub new {
 sub Run {
     my ( $Self, %Param ) = @_;
 
-    # get needed object
     my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
     my $JSONObject   = $Kernel::OM->Get('Kernel::System::JSON');
     my $LayoutObject = $Kernel::OM->Get('Kernel::Output::HTML::Layout');
-
-    my $ParamObject = $Kernel::OM->Get('Kernel::System::Web::Request');
+    my $ParamObject  = $Kernel::OM->Get('Kernel::System::Web::Request');
 
     my %GetParam;
     for my $Param (qw(TicketIDs QueryParams)) {
@@ -59,46 +56,54 @@ sub Run {
         }
     );
 
-    my $OperatorsConfig = $ConfigObject->Get('Loader::ZnunySearchFrontendOperators')->{'000-Framework'};
-    my $FieldsConfig    = $ConfigObject->Get('Loader::ZnunySearchFrontendFields')->{'000-Framework'};
+    my %Operators;
+    my %Fields;
+
+    my $OperatorsConfig = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchOperators')      // {};
+    my $FieldsConfig    = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchFrontendFields') // {};
+
+    for my $OperatorConfig ( sort values %{$OperatorsConfig} ) {
+        %Operators = ( %Operators, %{$OperatorConfig} );
+    }
+
+    for my $FieldConfig ( sort values %{$FieldsConfig} ) {
+        %Fields = ( %Fields, %{$FieldConfig} );
+    }
 
     if ( $Self->{Subaction} eq "GetInitialData" ) {
-
-        # challenge token check for write action
 
         my @Config;
         my $SearchTicketObject = $Kernel::OM->Get('Kernel::System::Search::Object::Default::Ticket');
         my $Labels             = $SearchTicketObject->{Fields};
 
-        for my $Field ( sort keys %{ $FieldsConfig->{Ticket} } ) {
+        for my $Field ( sort keys %{ $Fields{Ticket} } ) {
             if ( grep { $_ =~ $Field } keys %{$Labels} ) {
 
-                my $ConfigItem;
-
-                $ConfigItem->{label} = $Field;
                 my @FieldOperators;
-                for my $Key ( sort keys %{ $OperatorsConfig->{$Field} } ) {
+                for my $Key ( sort keys %{ $Operators{$Field} } ) {
                     push @FieldOperators,
                         {
                         label => $Key,
-                        code  => $OperatorsConfig->{$Field}->{$Key}
+                        code  => $Operators{$Field}->{$Key}
                         };
                 }
-                $ConfigItem->{operators} = \@FieldOperators;
 
-                if ( $FieldsConfig->{Ticket}->{$Field} eq "values" ) {
+                my $ConfigItem = {
+                    label     => $Field,
+                    operators => \@FieldOperators,
+                };
+
+                if ( $Fields{Ticket}->{$Field} eq "values" ) {
                     $ConfigItem->{values} = [ "1", "2" ];
                     $ConfigItem->{type}   = 'values';
                 }
-                elsif ( $FieldsConfig->{Ticket}->{$Field} =~ "api" ) {
-
-                    # $ConfigItem->{label} = $Field."ID";
-                    my @TypeAndMethod = split /\Q|\E/, $FieldsConfig->{Ticket}->{$Field};
+                elsif ( $Fields{Ticket}->{$Field} =~ "api" ) {
+                    my @TypeAndMethod = split /\Q|\E/, $Fields{Ticket}->{$Field};
                     $ConfigItem->{api}  = "/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=$Field";
                     $ConfigItem->{type} = 'api';
                 }
                 else {
-                    $ConfigItem->{type} = $FieldsConfig->{Ticket}->{$Field};
+                    $ConfigItem->{type} = $Fields{Ticket}->{$Field};
                 }
 
                 push @Config, $ConfigItem;
@@ -107,8 +112,6 @@ sub Run {
 
         my $JSON;
         if ( !IsArrayRefWithData( $GetParam{TicketIDs} ) ) {
-
-            # build JSON output
             $JSON = $LayoutObject->JSONEncode(
                 Data => {
                     Config => \@Config,
@@ -119,7 +122,6 @@ sub Run {
             );
         }
         else {
-            # build JSON output
             $JSON = $LayoutObject->JSONEncode(
                 Data => {
                     Config => \@Config,
@@ -136,13 +138,13 @@ sub Run {
         );
     }
 
-    my @ApiFields = grep { $FieldsConfig->{Ticket}->{$_} =~ "api" ? $_ : undef } keys %{ $FieldsConfig->{Ticket} };
+    my @ApiFields = grep { $Fields{Ticket}->{$_} =~ "api" ? $_ : undef } keys %{ $Fields{Ticket} };
 
     for my $Field (@ApiFields) {
         if ( $Self->{Subaction} eq $Field ) {
 
             my $Module  = $Kernel::OM->Get( 'Kernel::System::' . $Field );
-            my $Method  = ( split /\Q|\E/, $FieldsConfig->{Ticket}->{$Field} )[1];
+            my $Method  = ( split /\Q|\E/, $Fields{Ticket}->{$Field} )[1];
             my %Objects = $Module->$Method( UserID => $Self->{UserID} );
 
             my $Values;
@@ -178,24 +180,19 @@ sub Run {
 
     if ( $Self->{Subaction} eq "Search" ) {
 
-        # my $GeneralStartTime = Time::HiRes::time();
-
         my $Result = $Self->{SearchObject}->Search(
             Objects     => ["Ticket"],
             QueryParams => $GetParam{QueryParams},
-            Fields      => [ ["TicketID"] ],
+            Fields      => [ ["Ticket_TicketID"] ],
             ResultType  => "ARRAY"
         );
 
-        # my $GeneralStopTime = Time::HiRes::time();
-
-        my $TicketIDs;
-        @{$TicketIDs} = map { $_->{TicketID} } @{ $Result->{Ticket} };
+        my @TicketIDs = map { $_->{TicketID} } @{ $Result->{Ticket} };
 
         my $Response = $LayoutObject->JSONEncode(
             Data => {
                 HTML => $Self->_ShowTicketList(
-                    TicketIDs => $TicketIDs,
+                    TicketIDs => \@TicketIDs,
                 )
             }
         );
@@ -218,22 +215,17 @@ sub _ShowTicketList {
 
     my $LayoutObject = $Kernel::OM->Get('Kernel::Output::HTML::Layout');
 
-    my $Output = "<div id='TicketList'>";
-
+    my $Output   = "<div id='TicketList'>";
     my $LinkPage = "TicketIDs=";
 
     $LinkPage .= $LayoutObject->JSONEncode( Data => $Param{TicketIDs} ) . ";";
-
-    # if(length($GetParam{Body})) {
-    #    $LinkPage = $GetParam{Body};
-    # }
-    $Output .= $LayoutObject->TicketListShow(
-        UserID      => $Self->{UserID},
+    $Output   .= $LayoutObject->TicketListShow(
         TicketIDs   => $Param{TicketIDs},
         Total       => scalar @{ $Param{TicketIDs} },
         StartWindow => 0,
         Env         => {
-            Action => 'ZnunySearchFrontend'
+            Action => 'ZnunySearchFrontend',
+            UserID => $Self->{UserID},
         },
         LinkPage  => $LinkPage,
         View      => $Param{View},

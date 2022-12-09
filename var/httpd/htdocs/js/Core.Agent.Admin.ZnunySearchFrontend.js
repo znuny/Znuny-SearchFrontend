@@ -1,11 +1,12 @@
 // --
-// Copyright (C) 2012-2022 Znuny GmbH, http://znuny.com/
+// Copyright (C) 2012-2022 Znuny GmbH, https://znuny.com/
 // --
 // This software comes with ABSOLUTELY NO WARRANTY. For details, see
 // the enclosed file COPYING for license information (AGPL). If you
 // did not receive this file, see http://www.gnu.org/licenses/agpl.txt.
 // --
-// nofilter(TidyAll::Plugin::OTRS::JavaScript::ESLint)
+
+// nofilter(TidyAll::Plugin::Znuny::JavaScript::ESLint)
 
 "use strict";
 
@@ -13,13 +14,13 @@ var Core = Core || {};
 Core.Agent = Core.Agent || {};
 Core.Agent.Admin = Core.Agent.Admin || {};
 
-
 var config = [];
+var Vue = Vue;
 
 var clickOutside = {
   beforeMount: (el, binding) => {
     el.clickOutsideEvent = event => {
-      // here I check that click was outside the el and his children
+      // check that click was outside the el. and his children
       if (!(el == event.target || el.contains(event.target)
             || event.target.className === "zs-input"
             || event.target.className === "zs-option"
@@ -73,11 +74,11 @@ const ZnunySearchBox = createApp({
         });
     },
     watch: {
-        InputText(newText, oldText) {
+        InputText(newText) {
             if (!this.CurrentDropdown) {
                 return;
             }
-            this.CurrentDropdown.items.forEach((item, i) => {
+            this.CurrentDropdown.items.forEach((item) => {
                 if (item.text.toLowerCase().indexOf(newText.toLowerCase()) > -1) {
                     item.visible = true;
                 } else {
@@ -87,7 +88,7 @@ const ZnunySearchBox = createApp({
         },
     },
     methods: {
-        ToggleSavedSearches(e) {
+        ToggleSavedSearches() {
             this.SavedSearches = !this.SavedSearches;
         },
         clearAll() {
@@ -113,7 +114,7 @@ const ZnunySearchBox = createApp({
                 type: 'dropdown',
                 items: []
             }
-            config.forEach((item, i) => {
+            config.forEach((item) => {
                 this.CurrentDropdown.items.push({
                     text: item.label,
                     visible: true
@@ -282,7 +283,7 @@ const ZnunySearchBox = createApp({
                 if(this.Params[this.CurrentParamIndex].value) {
                     var index = this.Params[this.CurrentParamIndex].value.indexOf(entry.text);
 
-                    if( index > -1) {
+                    if(index > -1) {
                         this.Params[this.CurrentParamIndex].value.splice(index, 1);
                         if(!this.Params[this.CurrentParamIndex].value.length) {
                             this.Params[this.CurrentParamIndex].value = null;
@@ -445,13 +446,15 @@ const ZnunySearchBox = createApp({
                 }
 
             }
-            for( let Param of this.Params ) {
+            for(let Param of this.Params) {
                 var ParamValue = Param.value
 
                 if (Param.type === 'token' && Param.value) {
                     try {
                         ParamValue = JSON.parse(ParamValue)
-                    } catch (e) {}
+                    } catch (e) {
+                        // TODO catch
+                    }
 
                     var ParamAlreadyExist = QueryParams[Param.label] ? 1 : 0;
 

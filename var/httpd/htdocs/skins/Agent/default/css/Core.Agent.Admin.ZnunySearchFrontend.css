@@ -1,194 +1,210 @@
-    .SearchKontainer {
-        min-width: 1000px;
-        padding:  5px;
-        padding-top: 30px;
-        font-size:  0.92rem;
-        list-style:  none;
-        position: relative;
-        min-height: 12vh;
-    }
-    #TicketList {
-        padding:  5px;
-    }
-    .SearchKontainer > .Options {
-        font-size:  1rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 5px;
-    }
+/*
+Copyright (C) 2012-2022 Znuny GmbH, https://znuny.com/
 
-    .zs-box {
-        border:  1px solid #888;
-        display:  flex;
-    }
+This software comes with ABSOLUTELY NO WARRANTY. For details, see
+the enclosed file COPYING for license information (GPL). If you
+did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
+*/
 
-    .zs-dropdownwrap {
-        position:  relative;
-    }
+/**
+ * @package     Skin "Default"
+ * @section     Application
+ * @subsection  Admin
+ */
 
-    .zs-dropdown {
-        position:  absolute;
-        background:  #777;
-        color:  #fff;
-        top: 40px;
-        min-height:  35px;
-        width:  250px;
-        z-index: 100;
-    }
+.SearchContainer {
+    min-width: 1000px;
+    padding:  5px;
+    padding-top: 30px;
+    font-size:  0.92rem;
+    list-style:  none;
+    position: relative;
+    min-height: 12vh;
+}
 
-    .zs-dropdowntoggle {
-        cursor:  pointer;
-    }
+#TicketList {
+    padding:  5px;
+}
 
-     .zs-dropdownwrap > .zs-dropdown {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+.SearchContainer > .Options {
+    font-size:  1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+}
 
-    .zs-dropdownsymbol {
-        width:  .8em;
-        vertical-align: middle;
-        position:  relative;
-        top:  -.1em;
-        margin-left:  .2em;
-    }
+.zs-box {
+    border:  1px solid #888;
+    display:  flex;
+}
 
-    .zs-option {
-        width:  100%;
-        display:  block;
-        border:  none;
-        background:  none;
-        color: #fff;
-        text-align:  left;
-        padding:  .5em 1em;
-        cursor:  pointer;
-        border-radius:  0;
-    }
+.zs-dropdownwrap {
+    position:  relative;
+}
 
-    .active-zs-option {
-        color:  #000;
-        border: none: ;
-        background:  #ccc;
-        border-bottom: 1px solid white;
-    }
+.zs-dropdown {
+    position:  absolute;
+    background:  #777;
+    color:  #fff;
+    top: 40px;
+    min-height:  35px;
+    width:  250px;
+    z-index: 100;
+}
 
-    .active-zs-option > button{
-        color:  #000;
-    }
+.zs-dropdowntoggle {
+    cursor:  pointer;
+}
 
-    .zs-option:hover{
-        color:  #000;
-        border: none: ;
-        background:  #ccc;
-        border-bottom: 1px solid white;
-    }
+ .zs-dropdownwrap > .zs-dropdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.zs-dropdownsymbol {
+    width:  .8em;
+    vertical-align: middle;
+    position:  relative;
+    top:  -.1em;
+    margin-left:  .2em;
+}
+
+.zs-option {
+    width:  100%;
+    display:  block;
+    border:  none;
+    background:  none;
+    color: #fff;
+    text-align:  left;
+    padding:  .5em 1em;
+    cursor:  pointer;
+    border-radius:  0;
+}
+
+.active-zs-option {
+    color:  #000;
+    border: none: ;
+    background:  #ccc;
+    border-bottom: 1px solid white;
+}
+
+.active-zs-option > button{
+    color:  #000;
+}
+
+.zs-option:hover{
+    color:  #000;
+    border: none: ;
+    background:  #ccc;
+    border-bottom: 1px solid white;
+}
 
 
-    .zs-dropdowntoggle {
-        white-space: nowrap;
-        background: none;
-        padding:  .5em 1em;
-        border: none;
-        border-right:  1px solid #888;
-        margin-right:  .5em;
-    }
+.zs-dropdowntoggle {
+    white-space: nowrap;
+    background: none;
+    padding:  .5em 1em;
+    border: none;
+    border-right:  1px solid #888;
+    margin-right:  .5em;
+}
 
-    .zs-scrollable {
-        padding:  3px;
-        display:  flex; 
-        width:  100%;
+.zs-scrollable {
+    padding:  3px;
+    display:  flex; 
+    width:  100%;
 
 
-    }
+}
 
-    .zs-tokens {
-        display:  flex; 
-        width:  100%;
-        position:  relative;  
-    }
+.zs-tokens {
+    display:  flex; 
+    width:  100%;
+    position:  relative;  
+}
 
-    .zs-token {
-        display:  flex;
+.zs-token {
+    display:  flex;
 
-    }
+}
 
-    .zs-tokenwrap {
-        display:  flex;     
-    }
+.zs-tokenwrap {
+    display:  flex;     
+}
 
-    .zs-inputwrap {
-        width:  100%;
-        min-width:  150px;
-        display:  flex;
-        position:  relative;
-    }
+.zs-inputwrap {
+    width:  100%;
+    min-width:  150px;
+    display:  flex;
+    position:  relative;
+}
 
-    .zs-input {
-        display:  block;
-        width:  100%;
-        border:  none;
-        padding:  0 5px;
-    }
+.zs-input {
+    display:  block;
+    width:  100%;
+    border:  none;
+    padding:  0 5px;
+}
 
-    .zs-token {
-        background:  #ddd;
-        border-radius:  3px;
-        margin:  0 .7em 0 0;
-    }
+.zs-token {
+    background:  #ddd;
+    border-radius:  3px;
+    margin:  0 .7em 0 0;
+}
 
-    .zs-token:hover {
-        background:  #ccc;
-    }
+.zs-token:hover {
+    background:  #ccc;
+}
 
-    .zs-tokenpart {
-        white-space: nowrap;
-        padding:  .05em .5em;
-        border-left:  1px solid #fff;
-        display:  flex;
-        align-items:  center;
-        cursor: default;
-    }
+.zs-tokenpart {
+    white-space: nowrap;
+    padding:  .05em .5em;
+    border-left:  1px solid #fff;
+    display:  flex;
+    align-items:  center;
+    cursor: default;
+}
 
-    .zs-tokenchange {
-        border: none;
-        background: none;
-        cursor:  pointer;
-    }
+.zs-tokenchange {
+    border: none;
+    background: none;
+    cursor:  pointer;
+}
 
-    .zs-clear,
-    .zs-tokenremove {
-        border: none;
-        background:  none;
-        padding:  0 .5em;
-        color:  #999;
-        font-size:  1rem;
-        cursor: pointer;
-    }
+.zs-clear,
+.zs-tokenremove {
+    border: none;
+    background:  none;
+    padding:  0 .5em;
+    color:  #999;
+    font-size:  1rem;
+    cursor: pointer;
+}
 
-    .zs-clear:focus,
-    .zs-tokenremove:focus,
-    .zs-clear:hover,
-    .zs-tokenremove:hover,
-    .zs-clear:active,
-    .zs-tokenremove:active {
-        color: #000;
+.zs-clear:focus,
+.zs-tokenremove:focus,
+.zs-clear:hover,
+.zs-tokenremove:hover,
+.zs-clear:active,
+.zs-tokenremove:active {
+    color: #000;
 
-    }
+}
 
-    .zs-loader {
-        position:  absolute;
-        top:  50%;
-        left:  50%;
-        transform: translateX(-50%) translateY(-50%);
-        width:  36px;
-        height:  36px;
-    }
+.zs-loader {
+    position:  absolute;
+    top:  50%;
+    left:  50%;
+    transform: translateX(-50%) translateY(-50%);
+    width:  36px;
+    height:  36px;
+}
 
-    .zs-submit {
-        white-space: nowrap;
-        margin:  2px;
-        padding:  0 .5em;
-        cursor: pointer;
-    }
+.zs-submit {
+    white-space: nowrap;
+    margin:  2px;
+    padding:  0 .5em;
+    cursor: pointer;
+}
