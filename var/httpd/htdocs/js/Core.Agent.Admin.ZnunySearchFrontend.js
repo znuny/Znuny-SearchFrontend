@@ -402,13 +402,7 @@ const ZnunySearchBox = createApp({
                 HideWithTokenRemove();
             } else if (this.CurrentLevel === 2) {
                 if(!this.Params[this.CurrentParamIndex].value) {
-                    if(this.InputText !== '') {
-                        this.Params[this.CurrentParamIndex].value = this.InputText;
-                        this.resetCurrents();
-                        this.InputText = '';
-                    } else {
-                        HideWithTokenRemove();
-                    }
+                    HideWithTokenRemove();
                 }
                 else {
                     this.CurrentKind = null;
@@ -420,12 +414,6 @@ const ZnunySearchBox = createApp({
 
         },
         Submit(e) {
-
-            if(this.InputText !== '' && this.CurrentLevel === 2) {
-                this.Params[this.CurrentParamIndex].value = this.InputText;
-                this.resetCurrents();
-                this.InputText = '';
-            }
             var LookupFields = [ "Queue", "State", "Type", "Priority", "SLA", "Service" ];
             e.preventDefault();
 
