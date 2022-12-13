@@ -26,6 +26,10 @@ sub new {
 
     $Self->{ActiveEngine} = $Self->{SearchObject}->{Config}->{ActiveEngine};
     $Self->{Connection}   = $Self->{SearchObject}->{ConnectObject} ? 1 : 0;
+    $Self->{StartHit}     = 1;
+    $Self->{View}         = 'Small';
+    $Self->{TicketIDs}    = [];
+    $Self->{QueryParams}  = {};
 
     return $Self;
 }
@@ -36,24 +40,11 @@ sub Run {
     my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
     my $JSONObject   = $Kernel::OM->Get('Kernel::System::JSON');
     my $LayoutObject = $Kernel::OM->Get('Kernel::Output::HTML::Layout');
+    my $UserObject   = $Kernel::OM->Get('Kernel::System::User');
     my $ParamObject  = $Kernel::OM->Get('Kernel::System::Web::Request');
 
-    my %GetParam;
-    for my $Param (qw(TicketIDs QueryParams)) {
-        my $ParamValue = $ParamObject->GetParam( Param => $Param );
-        $GetParam{$Param} = $JSONObject->Decode( Data => $ParamValue );
-    }
-
-    my $Output = $LayoutObject->Header();
-    $Output .= $LayoutObject->NavigationBar();
-
-    # build output
-    $Output .= $LayoutObject->Output(
-        TemplateFile => 'ZnunySearchFrontend',
-        Data         => {
-            ActiveEngine => $Self->{ActiveEngine},
-            Connection   => $Self->{Connection},
-        }
+    my %Preferences = $UserObject->GetPreferences(
+        UserID => $Self->{UserID},
     );
 
     my %Operators;
@@ -70,14 +61,105 @@ sub Run {
         %Fields = ( %Fields, %{$FieldConfig} );
     }
 
-    if ( $Self->{Subaction} eq "GetInitialData" ) {
+    my @ApiFields = grep { $Fields{Ticket}->{$_} =~ 'api' ? $_ : undef } keys %{ $Fields{Ticket} };
 
+    for my $Param (qw(View StartHit)) {
+        my $ParamValue = $ParamObject->GetParam( Param => $Param );
+
+        if ( defined $ParamValue ) {
+            $UserObject->SetPreferences(
+                UserID => $Self->{UserID},
+                Key    => 'ZnunySearchFrontend' . $Param,
+                Value  => $ParamValue
+            );
+            $Self->{$Param} = $ParamValue;
+        }
+        else {
+            $Self->{$Param} = $Preferences{ 'ZnunySearchFrontend' . $Param } || $Self->{$Param};
+        }
+    }
+
+    if ( $Self->{Subaction} eq 'Search' ) {
+        my $JSONQueryParams = $ParamObject->GetParam( Param => 'QueryParams' );
+        my $QueryParams     = $JSONObject->Decode( Data => $JSONQueryParams );
+
+        $UserObject->SetPreferences(
+            Key    => 'LastSearchZnunySearchFrontendQueryParams',
+            Value  => $JSONQueryParams,
+            UserID => $Self->{UserID},
+        );
+
+        # add permissions parameter
+        $QueryParams->{UserID} = $Self->{UserID};
+
+        my $Result = $Self->{SearchObject}->Search(
+            Objects     => ['Ticket'],
+            QueryParams => $QueryParams,
+            Fields      => [ ["Ticket_TicketID"] ],
+            ResultType  => 'ARRAY',
+        );
+
+        my $TicketIDs;
+        @{$TicketIDs} = map { $_->{TicketID} } @{ $Result->{Ticket} };
+
+        my $JSONTicketIDs = $JSONObject->Encode(
+            Data => $TicketIDs
+        );
+
+        $UserObject->SetPreferences(
+            Key    => 'LastSearchZnunySearchFrontendTicketIDs',
+            Value  => $JSONTicketIDs,
+            UserID => $Self->{UserID},
+        );
+
+        $Self->{StartHit} = 1;
+        $UserObject->SetPreferences(
+            Key    => 'ZnunySearchFrontendStartHit',
+            Value  => 1,
+            UserID => $Self->{UserID},
+        );
+
+        $Self->{TicketIDs} = $TicketIDs;
+
+        my $Response = $LayoutObject->JSONEncode(
+            Data => {
+                HTML                  => $Self->_ShowTicketList(),
+                LastSearchQueryParams => $QueryParams,
+            }
+        );
+
+        $Self->{QueryParams} = $QueryParams;
+
+        return $LayoutObject->Attachment(
+            ContentType => 'application/json; charset=' . $LayoutObject->{Charset},
+            Content     => $Response,
+            Type        => 'inline',
+            NoCache     => 1,
+        );
+    }
+    elsif ( $Self->{Subaction} eq 'GetInitialData' ) {
+
+        my $JSONQueryParams = $Preferences{LastSearchZnunySearchFrontendQueryParams};
+        my $JSONTicketIDs   = $Preferences{LastSearchZnunySearchFrontendTicketIDs};
+
+        my $QueryParams;
+        my $TicketIDs;
+        if ( defined $JSONQueryParams ) {
+            $QueryParams = $JSONObject->Decode( Data => $JSONQueryParams );
+        }
+        if ( defined $JSONTicketIDs ) {
+            $TicketIDs = $JSONObject->Decode( Data => $JSONTicketIDs );
+        }
+
+        # challenge token check for write action
         my @Config;
         my $SearchTicketObject = $Kernel::OM->Get('Kernel::System::Search::Object::Default::Ticket');
         my $Labels             = $SearchTicketObject->{Fields};
 
         for my $Field ( sort keys %{ $Fields{Ticket} } ) {
-            if ( grep { $_ =~ $Field } keys %{$Labels} ) {
+
+            # TODO: Add checking additional fields
+            if ( grep { $_ =~ $Field || $Field =~ 'Article_Body' } keys %{$Labels} ) {
 
                 my @FieldOperators;
                 for my $Key ( sort keys %{ $Operators{$Field} } ) {
@@ -93,11 +175,11 @@ sub Run {
                     operators => \@FieldOperators,
                 };
 
-                if ( $Fields{Ticket}->{$Field} eq "values" ) {
+                if ( $Fields{Ticket}->{$Field} eq 'values' ) {
                     $ConfigItem->{values} = [ "1", "2" ];
                     $ConfigItem->{type}   = 'values';
                 }
-                elsif ( $Fields{Ticket}->{$Field} =~ "api" ) {
+                elsif ( $Fields{Ticket}->{$Field} =~ 'api' ) {
                     my @TypeAndMethod = split /\Q|\E/, $Fields{Ticket}->{$Field};
                     $ConfigItem->{api}  = "/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=$Field";
                     $ConfigItem->{type} = 'api';
@@ -110,24 +192,18 @@ sub Run {
             }
         }
 
+        $Self->{TicketIDs}   = $TicketIDs;
+        $Self->{QueryParams} = $QueryParams;
+
         my $JSON;
-        if ( !IsArrayRefWithData( $GetParam{TicketIDs} ) ) {
-            $JSON = $LayoutObject->JSONEncode(
-                Data => {
-                    Config => \@Config,
-                    HTML   => $Self->_ShowTicketList(
-                        TicketIDs => [],
-                    )
-                },
-            );
-        }
-        else {
-            $JSON = $LayoutObject->JSONEncode(
-                Data => {
-                    Config => \@Config,
-                },
-            );
-        }
+        $JSON = $LayoutObject->JSONEncode(
+            Data => {
+                Config                => \@Config,
+                HTML                  => $Self->_ShowTicketList(),
+                LastSearchQueryParams => $QueryParams,
+                StartHit              => $Self->{StartHit},
+            },
+        );
 
         # send JSON response
         return $LayoutObject->Attachment(
@@ -137,77 +213,49 @@ sub Run {
             NoCache     => 1,
         );
     }
+    elsif ( grep { $Self->{Subaction} eq $_ } @ApiFields ) {
+        my $Module  = $Kernel::OM->Get( 'Kernel::System::' . $Self->{Subaction} );
+        my $Method  = ( split /\Q|\E/, $Fields{Ticket}->{ $Self->{Subaction} } )[1];
+        my %Objects = $Module->$Method( UserID => $Self->{UserID} );
 
-    my @ApiFields = grep { $Fields{Ticket}->{$_} =~ "api" ? $_ : undef } keys %{ $Fields{Ticket} };
-
-    for my $Field (@ApiFields) {
-        if ( $Self->{Subaction} eq $Field ) {
-
-            my $Module  = $Kernel::OM->Get( 'Kernel::System::' . $Field );
-            my $Method  = ( split /\Q|\E/, $Fields{Ticket}->{$Field} )[1];
-            my %Objects = $Module->$Method( UserID => $Self->{UserID} );
-
-            my $Values;
-            for my $Key ( sort keys %Objects ) {
-                push @{$Values},
-                    {
-                    id   => $Key,
-                    name => $Objects{$Key}
-                    };
-            }
-
-            my $JSON = $LayoutObject->JSONEncode(
-                Data => $Values,
-            );
-
-            # send JSON response
-            return $LayoutObject->Attachment(
-                ContentType => 'application/json; charset=' . $LayoutObject->{Charset},
-                Content     => $JSON,
-                Type        => 'inline',
-                NoCache     => 1,
-            );
+        my $Values;
+        for my $Key ( sort keys %Objects ) {
+            push @{$Values}, {
+                id   => $Key,
+                name => $Objects{$Key}
+            };
         }
-    }
 
-    if ( IsArrayRefWithData( $GetParam{TicketIDs} ) ) {
-
-        $Output .= $Self->_ShowTicketList(
-            %Param,
-            TicketIDs => $GetParam{TicketIDs},
-        );
-    }
-
-    if ( $Self->{Subaction} eq "Search" ) {
-
-        my $Result = $Self->{SearchObject}->Search(
-            Objects     => ["Ticket"],
-            QueryParams => $GetParam{QueryParams},
-            Fields      => [ ["Ticket_TicketID"] ],
-            ResultType  => "ARRAY"
+        my $JSON = $LayoutObject->JSONEncode(
+            Data => $Values,
         );
 
-        my @TicketIDs = map { $_->{TicketID} } @{ $Result->{Ticket} };
-
-        my $Response = $LayoutObject->JSONEncode(
-            Data => {
-                HTML => $Self->_ShowTicketList(
-                    TicketIDs => \@TicketIDs,
-                )
-            }
-        );
-
+        # send JSON response
         return $LayoutObject->Attachment(
             ContentType => 'application/json; charset=' . $LayoutObject->{Charset},
-            Content     => $Response,
+            Content     => $JSON,
             Type        => 'inline',
             NoCache     => 1,
         );
     }
+    else {
+        my $Output = $LayoutObject->Header();
+        $Output .= $LayoutObject->NavigationBar();
 
-    $Output .= $LayoutObject->Footer();
+        # build output
+        $Output .= $LayoutObject->Output(
+            TemplateFile => 'ZnunySearchFrontend',
+            Data         => {
+                ActiveEngine => $Self->{ActiveEngine},
+                Connection   => $Self->{Connection},
+                StartHit     => $Self->{StartHit},
+            }
+        );
 
-    return $Output;
+        $Output .= $LayoutObject->Footer();
+
+        return $Output;
+    }
 }
 
 sub _ShowTicketList {
@@ -215,23 +263,22 @@ sub _ShowTicketList {
 
     my $LayoutObject = $Kernel::OM->Get('Kernel::Output::HTML::Layout');
 
-    my $Output   = "<div id='TicketList'>";
-    my $LinkPage = "TicketIDs=";
+    if ( !defined $Self->{TicketIDs} ) {
+        $Self->{TicketIDs} = [];
+    }
 
-    $LinkPage .= $LayoutObject->JSONEncode( Data => $Param{TicketIDs} ) . ";";
-    $Output   .= $LayoutObject->TicketListShow(
-        TicketIDs   => $Param{TicketIDs},
-        Total       => scalar @{ $Param{TicketIDs} },
+    my $Output = $LayoutObject->TicketListShow(
+        TicketIDs   => $Self->{TicketIDs},
+        Total       => scalar @{ $Self->{TicketIDs} },
         StartWindow => 0,
         Env         => {
             Action => 'ZnunySearchFrontend',
             UserID => $Self->{UserID},
         },
-        LinkPage  => $LinkPage,
-        View      => $Param{View},
+        View      => $Self->{View} || 'Small',
         Output    => 1,
-        TitleName => 'Search Results'
-    ) . "</div>";
+        TitleName => 'Search Results',
+    ) || '';
 
     return $Output;
 }

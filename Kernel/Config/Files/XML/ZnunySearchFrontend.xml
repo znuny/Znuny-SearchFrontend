@@ -29,6 +29,13 @@
                             <Item Key="!=">!=</Item>
                         </Hash>
                     </Item>
+                    <Item Key="Article_Body">
+                        <Hash>
+                            <Item Key="=">=</Item>
+                            <Item Key="!=">!=</Item>
+                            <Item Key="FULLTEXT">FULLTEXT</Item>
+                        </Hash>
+                    </Item>
                     <Item Key="Priority">
                         <Hash>
                             <Item Key="=">=</Item>
@@ -70,6 +77,7 @@
                     <Item Key="Ticket">
                         <Hash>
                             <Item Key="TicketID">customtext</Item>
+                            <Item Key="Article_Body">customtext</Item>
                             <Item Key="Title">customtext</Item>
                             <Item Key="TicketNumber">customtext</Item>
                             <Item Key="OwnerID">customtext</Item>
@@ -123,6 +131,7 @@
                         <Item>Core.UI.AllocationList.js</Item>
                         <Item>Core.Agent.TableFilters.js</Item>
                         <Item>Core.Agent.Overview.js</Item>
+                        <Item>Core.Agent.TicketSplit.js</Item>
                     </Array>
                 </Item>
             </Hash>

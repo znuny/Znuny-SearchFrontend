@@ -35,8 +35,8 @@
                     </div>
                     <ul  v-else class="zs-dropdownlist">
                         <li v-for="Search in LastSearches">
-                            <button type="button" class="zs-option">
-                                {{ Search }}
+                            <button type="button" class="zs-option" @click="SetParamsAndSearch(Search.Data)">
+                                {{ Search.Name }}
                             </button>
                         </li>
                     </ul>
@@ -100,7 +100,6 @@
         <button v-if="Params.length > 1" class="zs-clear" type="button" @click="clearAll">&times;</button>
         <button class="zs-submit" type="button" @click="Submit">Search</button>
     </div>
-    <div id="TicketList">
-
-    </div>
+    <input type="hidden" id="StartHit" value="[% Data.StartHit %]">
+    <div id="TicketList"></div>
 </div>

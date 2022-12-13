@@ -55,22 +55,37 @@ const ZnunySearchBox = createApp({
             CurrentDropdown: null,
             InputDisabled: 1,
             DropdownMessage: '',
+            StartHit: 1,
             Labels: [],
             Operators: [],
             ShowTime: 0
         }
     },
     mounted () {
+
+        this.StartHit = $('#StartHit').val();
+
         this.Params.push(this.InputParam);
-        var EnableInput = () => {
+
+        var SetProperties = (LastSearchQueryParams) => {
             this.InputDisabled = 0;
-        };
-        Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=GetInitialData',{ TicketIDs: '[]' }, function (Response) {
-            config = Response.Config;
-            EnableInput();
-            if(!$('div#TicketList')[1]) {
-                $('#TicketList').html(Response.HTML);
+
+            if(typeof LastSearchQueryParams != "undefined" && LastSearchQueryParams != {}) {
+                this.SetParams(LastSearchQueryParams)
             }
+        };
+
+        Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=GetInitialData',{ StartHit: this.StartHit }, function (Response) {
+
+            config = Response.Config;
+
+            $('#TicketList').html(Response.HTML);
+            Core.Agent.Overview.Init();
+
+            if(Response.LastSearchQueryParams) {
+                SetProperties(Response.LastSearchQueryParams);
+            }
+            SetProperties();
         });
     },
     watch: {
@@ -108,7 +123,9 @@ const ZnunySearchBox = createApp({
                 }
             });
         },
-
+        ProcessSarchName(Name) {
+            return Name.slice(30);
+        },
         createListLevel0 () {
             this.CurrentDropdown = {
                 type: 'dropdown',
@@ -249,6 +266,47 @@ const ZnunySearchBox = createApp({
             this.Params.splice(CurrentInputIndex, 1);
             this.Params.splice(this.CurrentParamIndex, 0, this.InputParam);
         },
+        SetParams(Data) {
+
+            this.SavedSearches = false;
+
+            if(Data != {}) {
+                this.Params = [];
+
+                var SavedSearchParams = [];
+                for (const Field in Data) {
+
+                    for (const Param of Data[Field]) {
+                        if(typeof Param === "string") {
+                            SavedSearchParams.push({
+                                type: 'token',
+                                label: Field,
+                                operator: {
+                                    text: '=',
+                                    code: '=',
+                                    visible: '='
+                                },
+                                value: Data[Field]
+                            })
+                            break;
+                        }
+                        else {
+                             SavedSearchParams.push({
+                                type: 'token',
+                                label: Field,
+                                operator: {
+                                    text: Param.Operator,
+                                    code: Param.Operator,
+                                    visible: true,
+                                },
+                                value: Array.isArray(Param.Value) ? Param.Value : [ Param.Value ],
+                            })
+                        }
+                    }
+                }
+                this.Params.push(...SavedSearchParams, this.InputParam)
+            }
+        },
         removeCurrentDropdown() {
             if (this.CurrentDropdown) {
                 const CurrentDropdownIndex = this.Params.findIndex((Param) => Param.type === 'dropdown');
@@ -305,14 +363,11 @@ const ZnunySearchBox = createApp({
             if(typeof values === "string") return values;
 
             for(var value of values) {
-                if(values.length > 1) {
-                    return "<b>..+" + (values.length-1) + "</b>, "+values[values.length-1];
-                }
                 if(values.indexOf(value) === 0) {
                     Result += value;
                 }
                 else {
-                    Result += ", "+value;
+                    return values[values.length-1] + "<b>, ..+" + (values.length-1) + "</b>";
                 }
             }
             return Result;
@@ -482,15 +537,14 @@ const ZnunySearchBox = createApp({
             var StopLoading = () => {
                 this.Loading = false;
             }
+            Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=Search', { QueryParams: JSON.stringify(QueryParams), Time: this.showTime, StartWindow: 0 } , function (Response) {
 
-            Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=Search', { QueryParams: JSON.stringify(QueryParams), Time: this.showTime, StartHit: 1, StartWindow: 0 } , function (Response) {
                 StopLoading();
                 if (Response) {
-                    if($('div#TicketList')[1]) {
-                        $('div#TicketList')[1].remove();
-                    }
                     $('#TicketList').html(Response.HTML);
+                    Core.Agent.Overview.Init();
                 }
+
             });
         },
     },
