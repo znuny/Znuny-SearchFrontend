@@ -13,28 +13,22 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
  */
 
 .SearchContainer {
-    min-width: 1000px;
-    padding:  5px;
-    padding-top: 30px;
-    list-style:  none;
-    position: relative;
-    min-height: 12vh;
+    margin-top: 30px;
 }
 
-#TicketList {
-    padding:  5px;
+.SearchContainer > .zs-box {
+    margin: 0 16px 0 8px;
+    font-size: 1.5em;
 }
 
-.SearchContainer > .Options {
-    font-size:  1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-}
+
 
 .zs-box {
-    border:  1px solid #888;
+    border: 1px solid #C9C9C9;
+    border-top-color: #C0C0C0;
+    background-color: #FFF;
+    -webkit-box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
     display:  flex;
 }
 
@@ -43,20 +37,47 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
 }
 
 .zs-dropdown {
-    position:  absolute;
-    background:  #777;
-    color:  #fff;
-    top: 40px;
-    min-height:  35px;
-    width:  250px;
     z-index: 100;
 }
 
-.zs-dropdowntoggle {
-    cursor:  pointer;
+.zs-dropdowncontent > .zs-dropdownmessage{
+    padding: 5px;
 }
 
- .zs-dropdownwrap > .zs-dropdown {
+.zs-scrollable{
+    overflow: auto;
+}
+
+form.zs-scrollable > .zs-dropdown{
+    -webkit-box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    border: 1px solid #C9C9C9;
+    box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    position:  absolute;
+    background:  #fff;
+    color:  #000;
+    min-height:  35px;
+    min-width:  200px;
+    margin-top: 32px;
+}
+
+.zs-dropdownwrap > .zs-dropdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.zs-dropdown#SavedSearchesBox {
+    left: -1px;
+    top: auto;
+    -webkit-box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    border: 1px solid #C9C9C9;
+    box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    position:  absolute;
+    background:  #fff;
+    color:  #000;
+}
+
+.zs-dropdownwrap > .zs-dropdown {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -75,16 +96,17 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
     display:  block;
     border:  none;
     background:  none;
-    color: #fff;
+    color: black;
     text-align:  left;
-    padding:  .5em 1em;
+    padding:  .4em 0.5em;
     cursor:  pointer;
     border-radius:  0;
+    font-size: inherit;
 }
 
 .active-zs-option {
     color:  #000;
-    border: none: ;
+    border: none;
     background:  #ccc;
     border-bottom: 1px solid white;
 }
@@ -100,33 +122,72 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
     border-bottom: 1px solid white;
 }
 
+.zs-dropdownlist{
+    font-size: 0.9em;
+}
+
+.zs-dropdownlist > li:nth-child(even) {
+    background-color: #F5F5F5;
+}
 
 .zs-dropdowntoggle {
     white-space: nowrap;
     background: none;
-    padding:  .5em 1em;
+    padding: .2em 0.5em;
     border: none;
-    border-right:  1px solid #888;
+    border-right: 1px solid #C9C9C9;
     margin-right:  .5em;
+    cursor: pointer;
+    -webkit-box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    font-size: inherit;
+    height: 100%;
+    min-width: 130px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    column-gap: 10px;
 }
 
 .zs-scrollable {
     padding:  3px;
     display:  flex; 
+    overflow: auto;
     width:  100%;
+}
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.zs-scrollable::-webkit-scrollbar {
+  display: none;
+}
 
+/* Hide scrollbar for IE, Edge and Firefox */
+.zs-scrollable {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.zs-scrollable > .zs-tokens > .zs-inputwrap > .zs-input {
+    font-size: 0.9em;
 }
 
 .zs-tokens {
     display:  flex; 
     width:  100%;
-    position:  relative;  
+    position:  relative;
+    /*justify-content: flex-end;*/
+}
+
+.zs-dropdowncontent > .zs-dropdownlist > .active-zs-option {
+    background-color: #ccc;
 }
 
 .zs-token {
     display:  flex;
-
+    background:  #e8e8e8;
+    border-radius:  3px;
+    margin:  0 .7em 0 0;
 }
 
 .zs-tokenwrap {
@@ -140,17 +201,17 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
     position:  relative;
 }
 
-.zs-input {
+.zs-inputwrap > .zs-input {
     display:  block;
     width:  100%;
+    min-width: 200px;
+    box-sizing: border-box;
     border:  none;
     padding:  0 5px;
-}
-
-.zs-token {
-    background:  #ddd;
-    border-radius:  3px;
-    margin:  0 .7em 0 0;
+    border-top-color: unset;
+    background-color: unset;
+    -webkit-box-shadow: unset;
+    box-shadow: unset;
 }
 
 .zs-token:hover {
@@ -170,6 +231,7 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
     border: none;
     background: none;
     cursor:  pointer;
+    font-size: inherit;
 }
 
 .zs-clear,
@@ -203,7 +265,13 @@ did not receive this file, see https://www.gnu.org/licenses/gpl-3.0.txt.
 
 .zs-submit {
     white-space: nowrap;
-    margin:  2px;
-    padding:  0 .5em;
     cursor: pointer;
+    border-left: 1px solid #C9C9C9;
+    padding: 5px 25px;
+    box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    -webkit-box-shadow: inset 1px 1px 3px #eee, inset -1px -1px 3px #eee;
+    background-color: #FFF;
+    border-right: none;
+    border-bottom: none;
+    border-top: none;
 }

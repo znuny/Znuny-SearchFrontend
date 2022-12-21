@@ -28,7 +28,7 @@ var clickOutside = {
             || event.target.className === "zs-tokenremove"
             || event.target.className === "zs-dropdown")) {
         // and if it did, call method provided in attribute value
-        binding.value();
+        binding.value(1);
       }
     };
     document.addEventListener("click", el.clickOutsideEvent);
@@ -107,8 +107,8 @@ const ZnunySearchBox = createApp({
             this.SavedSearches = !this.SavedSearches;
         },
         clearAll() {
-            this.Params = [this.InputParam];
             this.resetCurrents();
+            this.Params = [this.InputParam];
         },
         resetCurrents() {
             this.CurrentKind = null;
@@ -142,8 +142,21 @@ const ZnunySearchBox = createApp({
             // move dropdown to correct position
             this.$nextTick(() => {
                 const labelEl = this.$refs.inputWrap[0];
-                const offset = 5 + labelEl.offsetLeft + 'px';
-                this.$refs.dropdown[0].style.left = offset;
+                const tokens = this.$refs.token;
+                var margin = 5;
+                var spaces = 0;
+                if(tokens !== undefined) {
+                    for (var token of tokens) {
+                        margin += token.offsetWidth;
+                        spaces += 0.7;
+                    }
+                }
+
+                const scrollableEl = labelEl.closest('.zs-scrollable');
+                if(scrollableEl !== undefined){
+                    margin -= scrollableEl.scrollLeft;
+                }
+                this.$refs.dropdown[0].style.marginLeft = "calc("+margin+"px + "+spaces+"em)";
             });
         },
         createListLevel1 () {
@@ -171,8 +184,13 @@ const ZnunySearchBox = createApp({
             // move dropdown to correct position
             this.$nextTick(() => {
                 const labelEl = this.$refs['tokenLabel'+this.CurrentParamIndex][0];
-                const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth + 'px';
-                this.$refs.dropdown[0].style.left = offset;
+                const scrollableEl = labelEl.closest('.zs-scrollable');
+                let scrollableOverflowL = 0;
+                if(scrollableEl !== undefined){
+                    scrollableOverflowL = scrollableEl.scrollLeft;
+                }
+                const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth - scrollableOverflowL + 'px';
+                this.$refs.dropdown[0].style.marginLeft = offset;
             });
         },
         createListLevel2 () {
@@ -229,8 +247,13 @@ const ZnunySearchBox = createApp({
             // move dropdown to correct position
             this.$nextTick(() => {
                 const labelEl = this.$refs['tokenOperator'+this.CurrentParamIndex][0];
-                const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth + 'px';
-                this.$refs.dropdown[0].style.left = offset;
+                const scrollableEl = labelEl.closest('.zs-scrollable');
+                let scrollableOverflowL = 0;
+                if(scrollableEl !== undefined){
+                    scrollableOverflowL = scrollableEl.scrollLeft;
+                }
+                const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth - scrollableOverflowL + 'px';
+                this.$refs.dropdown[0].style.marginLeft = offset;
             });
         },
         ClickedOnInput() {
@@ -238,7 +261,7 @@ const ZnunySearchBox = createApp({
                 this.startNewToken();
             }
             else if(this.Params[this.CurrentParamIndex].value || this.CurrentLevel === 0) {
-                this.HideDropdown();
+                this.HideDropdown(1);
             }
         },
         startNewToken() {
@@ -305,6 +328,7 @@ const ZnunySearchBox = createApp({
                     }
                 }
                 this.Params.push(...SavedSearchParams, this.InputParam)
+                this.MoveInputToCorrectPosition()
             }
         },
         removeCurrentDropdown() {
@@ -382,15 +406,39 @@ const ZnunySearchBox = createApp({
             }
             return 0;
         },
-        changeParamValue(Param) {
+        MoveParamBeforeInput(Param) {
+            this.Params.sort((a, b) => {
+                if(a.type == "token" && b.type == "token") {
+                    return a.label == Param.label ? 1 : b.label == Param.label ? -1 : 0;
+                }
+                return 0;
+            })
+        },
+        changeParamValue(Param, click) {
             if(this.CurrentDropdown) {
-                this.HideDropdown();
+                if(click) {
+                   this.HideDropdown();
+                }
+                else {
+                    this.HideDropdown(1);
+                }
             }
             else {
                 this.CurrentLevel = 2;
+                if(!click) {
+                    this.MoveParamBeforeInput(Param);
+                }
                 this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
                 this.CurrentKind = config.findIndex((item) => item.label === Param.label);
+                if(config[this.CurrentKind].type === "customtext") {
+                    this.MoveParamBeforeInput(Param);
 
+                    this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
+                    this.CurrentKind = config.findIndex((item) => item.label === Param.label);
+
+                    this.InputText = this.Params[this.CurrentParamIndex].value
+                    this.Params[this.CurrentParamIndex].value = []
+                }
                 this.CurrentDropdown = {
                     type: 'dropdown',
                     items: []
@@ -398,7 +446,9 @@ const ZnunySearchBox = createApp({
                 this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
                 this.createListLevel2();
                 this.$nextTick(() => {
-                    this.$refs.inputField[0].focus();
+                    if(!click) {
+                        this.$refs.inputField[0].focus();
+                    }
                 });
             }
         },
@@ -438,14 +488,27 @@ const ZnunySearchBox = createApp({
             }
 
             // pressing return
-            if (e.which === 13 && this.InputText.length > 0) {
+            if (e.which === 13) {
+                this.MoveInputToCorrectPosition();
                 e.preventDefault();
                 this.Params[this.CurrentParamIndex].value = this.InputText;
                 this.resetCurrents();
                 this.InputText = '';
             }
         },
-        HideDropdown() {
+        MoveInputToCorrectPosition() {
+            const labelEl = this.$refs.inputWrap[0];
+            const scrollableEl = labelEl.closest('.zs-scrollable');
+            if(scrollableEl !== undefined){
+                setTimeout(() => {
+                    scrollableEl.scrollLeft = scrollableEl.scrollWidth
+                }, 200)
+            }
+        },
+        HideDropdown(MoveInput) {
+            if(MoveInput) {
+                this.MoveInputToCorrectPosition();
+            }
             var HideWithTokenRemove = () => {
                 this.removeToken(this.CurrentParamIndex);
                 this.CurrentLevel = null;
@@ -456,7 +519,7 @@ const ZnunySearchBox = createApp({
             if(this.CurrentLevel !== null && this.CurrentLevel < 2) {
                 HideWithTokenRemove();
             } else if (this.CurrentLevel === 2) {
-                if(!this.Params[this.CurrentParamIndex].value) {
+                if(!this.Params[this.CurrentParamIndex].value || !this.Params[this.CurrentParamIndex].value.length) {
                     if(this.InputText !== '') {
                         this.Params[this.CurrentParamIndex].value = this.InputText;
                         this.resetCurrents();

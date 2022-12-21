@@ -24,12 +24,13 @@ sub new {
 
     $Self->{SearchObject} = $Kernel::OM->Get('Kernel::System::Search');
 
-    $Self->{ActiveEngine} = $Self->{SearchObject}->{Config}->{ActiveEngine};
-    $Self->{Connection}   = $Self->{SearchObject}->{ConnectObject} ? 1 : 0;
-    $Self->{StartHit}     = 1;
-    $Self->{View}         = 'Small';
-    $Self->{TicketIDs}    = [];
-    $Self->{QueryParams}  = {};
+    $Self->{ActiveEngineName} = $Self->{SearchObject}->{Config}->{ActiveEngineName}
+        || $Self->{SearchObject}->{Config}->{ActiveEngine};
+    $Self->{Connection}  = $Self->{SearchObject}->{ConnectObject} ? 1 : 0;
+    $Self->{StartHit}    = 1;
+    $Self->{View}        = 'Small';
+    $Self->{TicketIDs}   = [];
+    $Self->{QueryParams} = {};
 
     return $Self;
 }
@@ -246,9 +247,9 @@ sub Run {
         $Output .= $LayoutObject->Output(
             TemplateFile => 'ZnunySearchFrontend',
             Data         => {
-                ActiveEngine => $Self->{ActiveEngine},
-                Connection   => $Self->{Connection},
-                StartHit     => $Self->{StartHit},
+                ActiveEngineName => $Self->{ActiveEngineName},
+                Connection       => $Self->{Connection},
+                StartHit         => $Self->{StartHit},
             }
         );
 
