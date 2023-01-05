@@ -1,5 +1,5 @@
 # --
-# Copyright (C) 2012-2022 Znuny GmbH, https://znuny.com/
+# Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 # --
 # This software comes with ABSOLUTELY NO WARRANTY. For details, see
 # the enclosed file COPYING for license information (AGPL). If you
@@ -38,18 +38,21 @@ sub new {
 sub Run {
     my ( $Self, %Param ) = @_;
 
-    my $ConfigObject = $Kernel::OM->Get('Kernel::Config');
-    my $JSONObject   = $Kernel::OM->Get('Kernel::System::JSON');
-    my $LayoutObject = $Kernel::OM->Get('Kernel::Output::HTML::Layout');
-    my $UserObject   = $Kernel::OM->Get('Kernel::System::User');
-    my $ParamObject  = $Kernel::OM->Get('Kernel::System::Web::Request');
+    my $ConfigObject       = $Kernel::OM->Get('Kernel::Config');
+    my $JSONObject         = $Kernel::OM->Get('Kernel::System::JSON');
+    my $LayoutObject       = $Kernel::OM->Get('Kernel::Output::HTML::Layout');
+    my $UserObject         = $Kernel::OM->Get('Kernel::System::User');
+    my $ParamObject        = $Kernel::OM->Get('Kernel::System::Web::Request');
+    my $SearchTicketObject = $Kernel::OM->Get('Kernel::System::Search::Object::Default::Ticket');
 
     my %Preferences = $UserObject->GetPreferences(
         UserID => $Self->{UserID},
     );
 
     my %Operators;
-    my %Fields;
+    my %ValidFieldsConfig;
+    my %ValidFieldsDefinition = ();
+    my @ApiFields;
 
     my $OperatorsConfig = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchOperators')      // {};
     my $FieldsConfig    = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchFrontendFields') // {};
@@ -59,10 +62,38 @@ sub Run {
     }
 
     for my $FieldConfig ( sort values %{$FieldsConfig} ) {
-        %Fields = ( %Fields, %{$FieldConfig} );
+        %ValidFieldsConfig = ( %ValidFieldsConfig, %{$FieldConfig} );
     }
 
-    my @ApiFields = grep { $Fields{Ticket}->{$_} =~ 'api' ? $_ : undef } keys %{ $Fields{Ticket} };
+    # fields need to contain specific type
+    # otherwise do not show them
+    for my $FieldType ( sort keys %ValidFieldsConfig ) {
+        FIELD_CONFIG:
+        for my $FieldProperty ( sort keys %{ $ValidFieldsConfig{$FieldType} } ) {
+            my $FieldTypeValue = $ValidFieldsConfig{$FieldType}->{$FieldProperty};
+
+            my %FieldDefinition = $SearchTicketObject->ValidFieldsPrepare(
+                Fields      => ["$FieldType\_$FieldProperty"],
+                Object      => "Ticket",
+                QueryParams => {},
+            );
+
+            if ( !keys %FieldDefinition || !keys %{ $FieldDefinition{$FieldType} } ) {
+                delete $ValidFieldsConfig{$FieldType}->{$FieldProperty};
+                next FIELD_CONFIG;
+            }
+
+            if ( $FieldTypeValue ne 'customtext' || $FieldTypeValue !~ 'api|.+' ) {
+                delete $ValidFieldsConfig{$FieldType}->{$FieldProperty};
+                next FIELD_CONFIG;
+            }
+            elsif ( $FieldTypeValue =~ 'api|.+' ) {
+                push @ApiFields, $FieldProperty;
+            }
+
+            $ValidFieldsDefinition{$FieldType}->{$FieldProperty} = $FieldDefinition{$FieldType}->{$FieldProperty};
+        }
+    }
 
     for my $Param (qw(View StartHit)) {
         my $ParamValue = $ParamObject->GetParam( Param => $Param );
@@ -100,11 +131,10 @@ sub Run {
             ResultType  => 'ARRAY',
         );
 
-        my $TicketIDs;
-        @{$TicketIDs} = map { $_->{TicketID} } @{ $Result->{Ticket} };
+        my @TicketIDs = map { $_->{TicketID} } @{ $Result->{Ticket} };
 
         my $JSONTicketIDs = $JSONObject->Encode(
-            Data => $TicketIDs
+            Data => \@TicketIDs,
         );
 
         $UserObject->SetPreferences(
@@ -120,7 +150,7 @@ sub Run {
             UserID => $Self->{UserID},
         );
 
-        $Self->{TicketIDs} = $TicketIDs;
+        $Self->{TicketIDs} = \@TicketIDs;
 
         my $Response = $LayoutObject->JSONEncode(
             Data => {
@@ -154,50 +184,127 @@ sub Run {
 
         # challenge token check for write action
         my @Config;
-        my $SearchTicketObject = $Kernel::OM->Get('Kernel::System::Search::Object::Default::Ticket');
-        my $Labels             = $SearchTicketObject->{Fields};
+        my $Labels = $SearchTicketObject->{Fields};
 
-        for my $Field ( sort keys %{ $Fields{Ticket} } ) {
+        # last saved query parameters can have fields that
+        # is no longer available due to config change
+        PARAM:
+        for my $Param ( sort keys %{$QueryParams} ) {
+            my $ParamToCheck = $Param;
+            my $IndexFieldTypeToCheck;
 
-            # TODO: Add checking additional fields
-            if ( grep { $_ =~ $Field || $Field =~ 'Article_Body' } keys %{$Labels} ) {
+            if ( $Param =~ m{(.+)_(.+)} ) {
+                $ParamToCheck          = $2;
+                $IndexFieldTypeToCheck = $1;
+            }
+            else {
+                $IndexFieldTypeToCheck = 'Ticket';
+            }
 
+            next PARAM if $ValidFieldsConfig{$IndexFieldTypeToCheck}->{$ParamToCheck};
+            delete $QueryParams->{$Param};
+        }
+
+        for my $FieldIndex ( sort keys %ValidFieldsConfig ) {
+            my $SearchIndexObject;
+
+            # use either Attachment or Article/Ticket
+            if ( $FieldIndex eq 'Attachment' ) {
+                $SearchIndexObject
+                    = $Kernel::OM->Get("Kernel::System::Search::Object::Default::ArticleDataMIMEAttachment");
+            }
+            else {
+                $SearchIndexObject = $Kernel::OM->Get("Kernel::System::Search::Object::Default::$FieldIndex");
+            }
+
+            FIELD:
+            for my $Field ( sort keys %{ $ValidFieldsConfig{$FieldIndex} } ) {
+                my $ConfigItem;
                 my @FieldOperators;
-                for my $Key ( sort keys %{ $Operators{$Field} } ) {
-                    push @FieldOperators,
-                        {
-                        label => $Key,
-                        code  => $Operators{$Field}->{$Key}
-                        };
-                }
+                my @ConfigFieldOperators = $Operators{$Field} ? split( ',', $Operators{$Field} ) : ();
 
-                my $ConfigItem = {
-                    label     => $Field,
-                    operators => \@FieldOperators,
-                };
-
-                if ( $Fields{Ticket}->{$Field} eq 'values' ) {
-                    $ConfigItem->{values} = [ "1", "2" ];
-                    $ConfigItem->{type}   = 'values';
-                }
-                elsif ( $Fields{Ticket}->{$Field} =~ 'api' ) {
-                    my @TypeAndMethod = split /\Q|\E/, $Fields{Ticket}->{$Field};
-                    $ConfigItem->{api}  = "/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=$Field";
-                    $ConfigItem->{type} = 'api';
+                if ( $FieldIndex eq "Ticket" ) {
+                    my $FieldType = $ValidFieldsDefinition{$FieldIndex}->{$Field}->{Type};
+                    my @FieldAvailableOperators
+                        = keys %{ $SearchIndexObject->{SupportedOperators}->{$FieldType}->{Operator} };
+                    for my $Operator (@ConfigFieldOperators) {
+                        if ( grep { $_ eq $Operator } @FieldAvailableOperators ) {
+                            push @FieldOperators, {
+                                label => $Operator,
+                                code  => $Operator
+                            };
+                        }
+                    }
+                    if ( !scalar @FieldOperators ) {
+                        for my $Operator (@FieldAvailableOperators) {
+                            push @FieldOperators, {
+                                label => $Operator,
+                                code  => $Operator
+                            };
+                        }
+                    }
+                    $ConfigItem = {
+                        label     => $Field,
+                        operators => \@FieldOperators,
+                    };
+                    if ( $ValidFieldsConfig{Ticket}->{$Field} =~ 'api' ) {
+                        my @TypeAndMethod = split /\Q|\E/, $ValidFieldsConfig{Ticket}->{$Field};
+                        $ConfigItem->{api}  = $LayoutObject->{Baselink} . "Action=ZnunySearchFrontend;Subaction=$Field";
+                        $ConfigItem->{type} = 'api';
+                    }
+                    else {
+                        $ConfigItem->{type} = $ValidFieldsConfig{Ticket}->{$Field};
+                    }
                 }
                 else {
-                    $ConfigItem->{type} = $Fields{Ticket}->{$Field};
+
+                    my $FieldType = $ValidFieldsDefinition{$FieldIndex}->{$Field}->{Type};
+                    my @FieldAvailableOperators
+                        = keys %{ $SearchIndexObject->{SupportedOperators}->{$FieldType}->{Operator} };
+
+                    for my $Operator (@ConfigFieldOperators) {
+                        if ( grep { $_ eq $Operator } @FieldAvailableOperators ) {
+                            push @FieldOperators, {
+                                label => $Operator,
+                                code  => $Operator
+                            };
+                        }
+                    }
+                    if ( !scalar @FieldOperators ) {
+
+                        for my $Operator (@FieldAvailableOperators) {
+                            push @FieldOperators, {
+                                label => $Operator,
+                                code  => $Operator
+                            };
+                        }
+                    }
+                    $ConfigItem = {
+                        label     => $FieldIndex . "_" . $Field,
+                        operators => \@FieldOperators,
+                    };
+                    if ( $ValidFieldsConfig{$FieldIndex}->{$Field} =~ 'api' ) {
+                        my @TypeAndMethod = split /\Q|\E/, $ValidFieldsConfig{$FieldIndex}->{$Field};
+                        $ConfigItem->{api} = $LayoutObject->{Baselink}
+                            . "Action=ZnunySearchFrontend;Subaction=$FieldIndex"
+                            . "_$Field";
+                        $ConfigItem->{type} = 'api';
+                    }
+                    else {
+                        $ConfigItem->{type} = $ValidFieldsConfig{$FieldIndex}->{$Field};
+                    }
                 }
 
-                push @Config, $ConfigItem;
+                if ( $ConfigItem->{type} ) {
+                    push @Config, $ConfigItem;
+                }
             }
         }
 
         $Self->{TicketIDs}   = $TicketIDs;
         $Self->{QueryParams} = $QueryParams;
 
-        my $JSON;
-        $JSON = $LayoutObject->JSONEncode(
+        my $JSON = $LayoutObject->JSONEncode(
             Data => {
                 Config                => \@Config,
                 HTML                  => $Self->_ShowTicketList(),
@@ -216,19 +323,19 @@ sub Run {
     }
     elsif ( grep { $Self->{Subaction} eq $_ } @ApiFields ) {
         my $Module  = $Kernel::OM->Get( 'Kernel::System::' . $Self->{Subaction} );
-        my $Method  = ( split /\Q|\E/, $Fields{Ticket}->{ $Self->{Subaction} } )[1];
+        my $Method  = ( split /\Q|\E/, $ValidFieldsConfig{Ticket}->{ $Self->{Subaction} } )[1];
         my %Objects = $Module->$Method( UserID => $Self->{UserID} );
 
-        my $Values;
+        my @Values;
         for my $Key ( sort keys %Objects ) {
-            push @{$Values}, {
+            push @Values, {
                 id   => $Key,
                 name => $Objects{$Key}
             };
         }
 
         my $JSON = $LayoutObject->JSONEncode(
-            Data => $Values,
+            Data => \@Values,
         );
 
         # send JSON response

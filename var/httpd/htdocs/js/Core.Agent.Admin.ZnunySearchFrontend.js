@@ -1,5 +1,5 @@
 // --
-// Copyright (C) 2012-2022 Znuny GmbH, https://znuny.com/
+// Copyright (C) 2012 Znuny GmbH, https://znuny.com/
 // --
 // This software comes with ABSOLUTELY NO WARRANTY. For details, see
 // the enclosed file COPYING for license information (AGPL). If you
@@ -195,10 +195,10 @@ const ZnunySearchBox = createApp({
         },
         createListLevel2 () {
             this.CurrentDropdown.items = []
+            const myItems = [];
 
             // hardcoded value list
             if (config[this.CurrentKind].type === 'values') {
-                const myItems = [];
                 config[this.CurrentKind].values.forEach((value) => {
                     myItems.push({
                         text: value,
@@ -210,7 +210,6 @@ const ZnunySearchBox = createApp({
 
             // API access value list
             if (config[this.CurrentKind].type === 'api') {
-                const myItems = [];
                 this.Loading = true;
                 const http = new Http();
                 http
@@ -233,8 +232,17 @@ const ZnunySearchBox = createApp({
 
             // Freetext
             if (config[this.CurrentKind].type === 'customtext') {
-                this.CurrentDropdown.items = [];
-                this.removeCurrentDropdown();
+
+                if(this.Params[this.CurrentParamIndex].value) {
+                    this.Params[this.CurrentParamIndex].value.forEach((value) => {
+                        myItems.push({
+                            text: String(value),
+                            visible: true
+                        });
+                    })
+                    this.CurrentDropdown.items = myItems;
+                }
+
                 this.$nextTick(() => {
                     this.$refs.inputField[0].focus();
                 });
@@ -298,7 +306,6 @@ const ZnunySearchBox = createApp({
 
                 var SavedSearchParams = [];
                 for (const Field in Data) {
-
                     for (const Param of Data[Field]) {
                         if(typeof Param === "string") {
                             SavedSearchParams.push({
@@ -314,6 +321,12 @@ const ZnunySearchBox = createApp({
                             break;
                         }
                         else {
+                            for (let Index in Param.Value){
+                                if(typeof Param.Value[Index] !== "string") {
+                                    Param.Value[Index] = String(Param.Value[Index]);
+                                }
+                            }
+
                              SavedSearchParams.push({
                                 type: 'token',
                                 label: Field,
@@ -322,7 +335,7 @@ const ZnunySearchBox = createApp({
                                     code: Param.Operator,
                                     visible: true,
                                 },
-                                value: Array.isArray(Param.Value) ? Param.Value : [ Param.Value ],
+                                value:  Array.isArray(Param.Value) ? String(Param.Value) : [ String(Param.Value) ],
                             })
                         }
                     }
@@ -339,7 +352,6 @@ const ZnunySearchBox = createApp({
             this.CurrentDropdown = null;
         },
         chooseFromList(entry, entryindex) {
-
             if (this.CurrentLevel === 0) {
                 for(var Param of this.Params) {
                     if(Param.label === entry.text) {
@@ -361,7 +373,6 @@ const ZnunySearchBox = createApp({
                 this.$refs.inputField[0].focus();
                 this.InputText = '';
             } else if (this.CurrentLevel === 2) {
-
                 if(this.Params[this.CurrentParamIndex].value) {
                     var index = this.Params[this.CurrentParamIndex].value.indexOf(entry.text);
 
@@ -378,23 +389,33 @@ const ZnunySearchBox = createApp({
                     this.Params[this.CurrentParamIndex].value = [];
                     this.Params[this.CurrentParamIndex].value.push(entry.text);
                 }
+                this.$refs.inputField[0].focus();
             }
         },
         ParamValueText(values) {
             var Result = "";
-
             if(!values) return Result;
             if(typeof values === "string") return values;
+
+            if(!Array.isArray(values)){
+                values = [values];
+            }
 
             for(var value of values) {
                 if(values.indexOf(value) === 0) {
                     Result += value;
                 }
                 else {
-                    return values[values.length-1] + "<b>, ..+" + (values.length-1) + "</b>";
+                    return values[0] + "<b>, ..+" + (values.length-1) + "</b>";
                 }
             }
             return Result;
+        },
+        fieldName(value) {
+            if (!value) return '';
+            value = value.split('_');
+            value = value.join('::');
+            return value
         },
         isActive(entrytext) {
             var Param = this.Params[this.CurrentParamIndex];
@@ -436,12 +457,11 @@ const ZnunySearchBox = createApp({
                     this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
                     this.CurrentKind = config.findIndex((item) => item.label === Param.label);
 
-                    this.InputText = this.Params[this.CurrentParamIndex].value
-                    this.Params[this.CurrentParamIndex].value = []
+                    this.InputText = '';
                 }
                 this.CurrentDropdown = {
                     type: 'dropdown',
-                    items: []
+                    items: [...this.Params[this.CurrentParamIndex].value]
                 }
                 this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
                 this.createListLevel2();
@@ -491,7 +511,16 @@ const ZnunySearchBox = createApp({
             if (e.which === 13) {
                 this.MoveInputToCorrectPosition();
                 e.preventDefault();
-                this.Params[this.CurrentParamIndex].value = this.InputText;
+
+                if(!this.Params[this.CurrentParamIndex].value) {
+                    this.Params[this.CurrentParamIndex].value = [this.InputText];
+                } else {
+                    var index = this.Params[this.CurrentParamIndex].value.indexOf(this.InputText);
+                    if(index < 0) {
+                        this.Params[this.CurrentParamIndex].value = [...this.Params[this.CurrentParamIndex].value, this.InputText];
+                    }
+                }
+
                 this.resetCurrents();
                 this.InputText = '';
             }
@@ -521,7 +550,7 @@ const ZnunySearchBox = createApp({
             } else if (this.CurrentLevel === 2) {
                 if(!this.Params[this.CurrentParamIndex].value || !this.Params[this.CurrentParamIndex].value.length) {
                     if(this.InputText !== '') {
-                        this.Params[this.CurrentParamIndex].value = this.InputText;
+                        this.Params[this.CurrentParamIndex].value = [this.InputText];
                         this.resetCurrents();
                         this.InputText = '';
                     } else {
@@ -549,7 +578,6 @@ const ZnunySearchBox = createApp({
 
             var QueryParams = {};
             var QueryParamsSet = (Field, Operator, Value, Exist) => {
-
                 if(LookupFields.indexOf(Field) != -1) {
                     if(!Exist) {
                         QueryParams[Field] = Value;
@@ -573,7 +601,6 @@ const ZnunySearchBox = createApp({
                         });
                     }
                 }
-
             }
             for(let Param of this.Params) {
                 var ParamValue = Param.value
@@ -614,7 +641,6 @@ const ZnunySearchBox = createApp({
 });
 
 ZnunySearchBox.directive('click-outside', clickOutside);
-
 ZnunySearchBox.mount('#SearchBox');
 // helper functions
 

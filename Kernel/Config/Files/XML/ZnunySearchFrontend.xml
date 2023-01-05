@@ -1,92 +1,62 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <otrs_config version="2.0" init="Application">
         <Setting Name="ZnunySearchFrontend::Loader::SearchOperators###000-Framework" Required="0" Valid="1">
-            <Description Translatable="1">Register search engines.</Description>
+            <Description Translatable="1">Registration of operators for individual fields. If operators are not defined, all available operators for the type are displayed.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Hash>
-                    <Item Key="TicketID">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                            <Item Key="!=">!=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="Title">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                            <Item Key="!=">!=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="TicketNumber">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                            <Item Key="!=">!=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="OwnerID">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                            <Item Key="!=">!=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="Article_Body">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                            <Item Key="!=">!=</Item>
-                            <Item Key="FULLTEXT">FULLTEXT</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="Priority">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="Service">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="State">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="Queue">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="SLA">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                        </Hash>
-                    </Item>
-                    <Item Key="Type">
-                        <Hash>
-                            <Item Key="=">=</Item>
-                        </Hash>
-                    </Item>
+                    <Item Key="TicketID">=,!=</Item>
                 </Hash>
             </Value>
         </Setting>
         <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendFields###000-Framework" Required="0" Valid="1">
-            <Description Translatable="1">Register search engines.</Description>
+            <Description Translatable="1">Register znuny search fields that uses custom text type.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Hash>
                     <Item Key="Ticket">
                         <Hash>
                             <Item Key="TicketID">customtext</Item>
-                            <Item Key="Article_Body">customtext</Item>
                             <Item Key="Title">customtext</Item>
                             <Item Key="TicketNumber">customtext</Item>
                             <Item Key="OwnerID">customtext</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Article">
+                        <Hash>
+                            <Item Key="Body">customtext</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Attachment">
+                        <Hash>
+                            <Item Key="Filename">customtext</Item>
+                        </Hash>
+                    </Item>
+                </Hash>
+            </Value>
+        </Setting>
+        <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendAdditionalFields###000-Framework" Required="0" Valid="1">
+            <Description Translatable="1">Register znuny search additional fields that uses api.</Description>
+            <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
+            <Value>
+                <Hash>
+                    <Item Key="Ticket">
+                        <Hash>
                             <Item Key="Priority">api|PriorityList</Item>
                             <Item Key="Service">api|ServiceList</Item>
                             <Item Key="State">api|StateList</Item>
                             <Item Key="Queue">api|GetAllQueues</Item>
                             <Item Key="SLA">api|SLAList</Item>
                             <Item Key="Type">api|TypeList</Item>
+                            <Item Key="Customer">api|CustomerCompanyList</Item>
+                        </Hash>
+                    </Item>
+                    <Item Key="Article">
+                        <Hash>
+                        </Hash>
+                    </Item>
+                    <Item Key="Attachment">
+                        <Hash>
                         </Hash>
                     </Item>
                 </Hash>
