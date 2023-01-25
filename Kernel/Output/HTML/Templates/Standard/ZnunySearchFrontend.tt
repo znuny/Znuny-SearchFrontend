@@ -47,7 +47,7 @@
                 <template v-for="(Param, ParamIndex) in Params">
                     <li v-if="Param.label" class="zs-token" ref="token">
                         <ul class="zs-tokenwrap">
-                            <li :ref="'tokenLabel'+ParamIndex"class="zs-tokenpart zs-label">
+                            <li :ref="'tokenLabel'+ParamIndex" class="zs-tokenpart zs-label">
                                 {{ fieldName(Param.label) }}
                             </li>
                             <li :ref="'tokenOperator'+ParamIndex" v-if="Param.operator" class="zs-tokenpart zs-operator">{{Param.operator.text}}</li>
@@ -73,7 +73,7 @@
             <template v-for="(Param, ParamIndex) in Params">
                 <div v-if="Param.type === 'dropdown'" class="zs-dropdown" ref="dropdown">
                         <div class="zs-dropdowncontent">
-                            <div class="zs-dropdownmessage">{{ DropdownMessage }}</div>
+                            <div v-if="DropdownMessage" class="zs-dropdownmessage">{{ DropdownMessage }}</div>
                             <svg v-if="Loading" class="zs-loader" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200px" height="200px" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid">
                                 <circle cx="50" cy="50" fill="none" stroke="#fff" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138">
                                     <animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform>

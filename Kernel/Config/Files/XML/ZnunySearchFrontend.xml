@@ -9,54 +9,110 @@
                 </Hash>
             </Value>
         </Setting>
+        <Setting Name="ZnunySearchFrontend::Loader::ExcludeOperators" Required="0" Valid="1">
+            <Description Translatable="1">List of all operators that are excluded from use in the Znuny front-end search component.</Description>
+            <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
+            <Value>
+                <Array>
+                    <Item>IS NOT DEFINED</Item>
+                    <Item>IS DEFINED</Item>
+                    <Item>IS EMPTY</Item>
+                    <Item>IS NOT EMPTY</Item>
+                    <Item>BETWEEN</Item>
+                </Array>
+            </Value>
+        </Setting>
         <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendFields###000-Framework" Required="0" Valid="1">
-            <Description Translatable="1">Register znuny search fields that uses custom text type.</Description>
+            <Description Translatable="1">Register search fields for Znuny front-end search component.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Hash>
                     <Item Key="Ticket">
                         <Hash>
                             <Item Key="TicketID">customtext</Item>
-                            <Item Key="Title">customtext</Item>
                             <Item Key="TicketNumber">customtext</Item>
+                            <Item Key="Title">customtext</Item>
+                            <Item Key="Queue">api</Item>
+                            <Item Key="Type">api</Item>
+                            <Item Key="Service">api</Item>
+                            <Item Key="SLA">api</Item>
+                            <Item Key="Owner">api</Item>
                             <Item Key="OwnerID">customtext</Item>
+                            <Item Key="Responsible">api</Item>
+                            <Item Key="Priority">api</Item>
+                            <Item Key="State">api</Item>
+                            <Item Key="Customer">api</Item>
+                            <Item Key="CustomerUserID">customtext</Item>
+                            <Item Key="ArchiveFlag">customtext</Item>
+                            <Item Key="CreateByLogin">api</Item>
+                            <Item Key="ChangeByLogin">api</Item>
+                            <Item Key="DynamicField_DynamicFieldName">customtext</Item>
                         </Hash>
                     </Item>
                     <Item Key="Article">
                         <Hash>
                             <Item Key="Body">customtext</Item>
+                            <Item Key="Subject">customtext</Item>
+                            <Item Key="ArticleID">customtext</Item>
+                            <Item Key="From">customtext</Item>
+                            <Item Key="To">customtext</Item>
+                            <Item Key="CC">customtext</Item>
+                            <Item Key="BCC">customtext</Item>
+                            <Item Key="IsVisibleForCustomer">customtext</Item>
+                            <Item Key="DynamicField_DynamicFieldName">customtext</Item>
                         </Hash>
                     </Item>
                     <Item Key="Attachment">
                         <Hash>
                             <Item Key="Filename">customtext</Item>
+                            <Item Key="ContentType">customtext</Item>
                         </Hash>
                     </Item>
                 </Hash>
             </Value>
         </Setting>
-        <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendAdditionalFields###000-Framework" Required="0" Valid="1">
-            <Description Translatable="1">Register znuny search additional fields that uses api.</Description>
+        <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendFieldsOrder" Required="0" Valid="1">
+            <Description Translatable="1">Set order for fields shown in the Znuny front-end search component.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Hash>
                     <Item Key="Ticket">
                         <Hash>
-                            <Item Key="Priority">api|PriorityList</Item>
-                            <Item Key="Service">api|ServiceList</Item>
-                            <Item Key="State">api|StateList</Item>
-                            <Item Key="Queue">api|GetAllQueues</Item>
-                            <Item Key="SLA">api|SLAList</Item>
-                            <Item Key="Type">api|TypeList</Item>
-                            <Item Key="Customer">api|CustomerCompanyList</Item>
+                            <Item Key="Title">1</Item>
+                            <Item Key="TicketNumber">2</Item>
+                            <Item Key="Queue">3</Item>
+                            <Item Key="State">4</Item>
+                            <Item Key="Type">5</Item>
+                            <Item Key="Service">6</Item>
+                            <Item Key="SLA">7</Item>
+                            <Item Key="Priority">8</Item>
+                            <Item Key="Owner">9</Item>
+                            <Item Key="OwnerID">11</Item>
+                            <Item Key="Responsible">10</Item>
+                            <Item Key="Customer">11</Item>
+                            <Item Key="CustomerUserID">12</Item>
+                            <Item Key="ArchiveFlag">13</Item>
+                            <Item Key="CreateByLogin">14</Item>
+                            <Item Key="ChangeByLogin">15</Item>
+                            <Item Key="TicketID">16</Item>
                         </Hash>
                     </Item>
                     <Item Key="Article">
                         <Hash>
+                            <Item Key="Body">17</Item>
+                            <Item Key="Subject">18</Item>
+                            <Item Key="ArticleID">19</Item>
+                            <Item Key="From">20</Item>
+                            <Item Key="To">21</Item>
+                            <Item Key="CC">22</Item>
+                            <Item Key="BCC">23</Item>
+                            <Item Key="IsVisibleForCustomer">24</Item>
                         </Hash>
                     </Item>
                     <Item Key="Attachment">
                         <Hash>
+                            <Item Key="Filename">25</Item>
+                            <Item Key="ContentType">26</Item>
                         </Hash>
                     </Item>
                 </Hash>

@@ -44,6 +44,8 @@ const ZnunySearchBox = createApp({
     data() {
         return {
             SavedSearches: false,
+            LookupFields: null,
+            FieldsOrder: null,
             LastSearches: [],
             Params: [],
             Loading: false,
@@ -67,8 +69,9 @@ const ZnunySearchBox = createApp({
 
         this.Params.push(this.InputParam);
 
-        var SetProperties = (LastSearchQueryParams) => {
+        var SetProperties = (LookupFields, LastSearchQueryParams) => {
             this.InputDisabled = 0;
+            this.LookupFields = LookupFields;
 
             if(typeof LastSearchQueryParams != "undefined" && LastSearchQueryParams != {}) {
                 this.SetParams(LastSearchQueryParams)
@@ -79,13 +82,23 @@ const ZnunySearchBox = createApp({
 
             config = Response.Config;
 
+            var Sort = (a,b) => {
+                var IndexA = Response.FieldsOrder.indexOf(a.label);
+                var IndexB = Response.FieldsOrder.indexOf(b.label)
+                return ((IndexA > -1 ? IndexA : Infinity) - (IndexB > -1 ? IndexB : Infinity));
+            }
+            config.sort(function(a, b){
+              return Sort(a,b);
+            });
+
             $('#TicketList').html(Response.HTML);
             Core.Agent.Overview.Init();
 
             if(Response.LastSearchQueryParams) {
-                SetProperties(Response.LastSearchQueryParams);
+                SetProperties(Response.LookupFields, Response.LastSearchQueryParams);
+            } else {
+                SetProperties(Response.LookupFields);
             }
-            SetProperties();
         });
     },
     watch: {
@@ -118,7 +131,7 @@ const ZnunySearchBox = createApp({
 
             // remove stray Params
             this.Params.forEach((Param, i) => {
-                if (Param.type === 'token' && (!Param.operator || !Param.value.length)) {
+                if (Param.type === 'token' && (Param.value !== undefined && !Param.value.length)) {
                     this.Params.splice(i, 1);
                 }
             });
@@ -137,6 +150,7 @@ const ZnunySearchBox = createApp({
                     visible: true
                 });
             });
+
             this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
 
             // move dropdown to correct position
@@ -197,42 +211,76 @@ const ZnunySearchBox = createApp({
             this.CurrentDropdown.items = []
             const myItems = [];
 
-            // hardcoded value list
-            if (config[this.CurrentKind].type === 'values') {
-                config[this.CurrentKind].values.forEach((value) => {
-                    myItems.push({
-                        text: value,
-                        visible: true
-                    });
-                });
-                this.CurrentDropdown.items = myItems;
-            }
-
-            // API access value list
-            if (config[this.CurrentKind].type === 'api') {
-                this.Loading = true;
-                const http = new Http();
-                http
-                .get(config[this.CurrentKind].api)
-                .then((res) => {
-                    JSON.parse(res).forEach((item) => {
+            if(this.Params[this.CurrentParamIndex].operator) {
+                // hardcoded value list
+                if (config[this.CurrentKind].type === 'values') {
+                    config[this.CurrentKind].values.forEach((value) => {
                         myItems.push({
-                            text: item.name,
+                            text: value,
                             visible: true
                         });
                     });
                     this.CurrentDropdown.items = myItems;
-                    this.Loading = false;
-                })
-                .catch((err) => {
-                    console.error(err.error);
-                    this.Loading = false;
-                })
-            }
+                }
 
-            // Freetext
-            if (config[this.CurrentKind].type === 'customtext') {
+                // API access value list
+                if (config[this.CurrentKind].type === 'api') {
+                    this.Loading = true;
+                    const http = new Http();
+                    http
+                    .get(config[this.CurrentKind].api)
+                    .then((res) => {
+                        JSON.parse(res).forEach((item) => {
+                            myItems.push({
+                                text: item.name,
+                                visible: true
+                            });
+                        });
+                        this.CurrentDropdown.items = myItems;
+                        this.Loading = false;
+                    })
+                    .catch((err) => {
+                        console.error(err.error);
+                        this.Loading = false;
+                    })
+                }
 
+                // Freetext
+                if (config[this.CurrentKind].type === 'customtext') {
+
+                    const isIterable = object =>
+                        object != null && typeof object[Symbol.iterator] === 'function'
+
+                    if(isIterable(this.Params[this.CurrentParamIndex].value)) {
+                        this.Params[this.CurrentParamIndex].value.forEach((value) => {
+                            myItems.push({
+                                text: String(value),
+                                visible: true
+                            });
+                        })
+                        this.CurrentDropdown.items = myItems;
+                    }
+
+                    this.$nextTick(() => {
+                        this.$refs.inputField[0].focus();
+                    });
+
+                }
+                if (!this.CurrentDropdown) {
+                    return;
+                }
+                // move dropdown to correct position
+                this.$nextTick(() => {
+                    const labelEl = this.$refs['tokenOperator'+this.CurrentParamIndex][0];
+                    const scrollableEl = labelEl.closest('.zs-scrollable');
+                    let scrollableOverflowL = 0;
+                    if(scrollableEl !== undefined){
+                        scrollableOverflowL = scrollableEl.scrollLeft;
+                    }
+                    const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth - scrollableOverflowL + 'px';
+                    this.$refs.dropdown[0].style.marginLeft = offset;
+                });
+            } else {
                 if(this.Params[this.CurrentParamIndex].value) {
                     this.Params[this.CurrentParamIndex].value.forEach((value) => {
                         myItems.push({
@@ -246,23 +294,11 @@ const ZnunySearchBox = createApp({
                 this.$nextTick(() => {
                     this.$refs.inputField[0].focus();
                 });
-
-            }
-            if (!this.CurrentDropdown) {
-                return;
             }
 
-            // move dropdown to correct position
-            this.$nextTick(() => {
-                const labelEl = this.$refs['tokenOperator'+this.CurrentParamIndex][0];
-                const scrollableEl = labelEl.closest('.zs-scrollable');
-                let scrollableOverflowL = 0;
-                if(scrollableEl !== undefined){
-                    scrollableOverflowL = scrollableEl.scrollLeft;
-                }
-                const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth - scrollableOverflowL + 'px';
-                this.$refs.dropdown[0].style.marginLeft = offset;
-            });
+
+
+
         },
         ClickedOnInput() {
             if (this.CurrentParamIndex === null) {
@@ -335,7 +371,7 @@ const ZnunySearchBox = createApp({
                                     code: Param.Operator,
                                     visible: true,
                                 },
-                                value:  Array.isArray(Param.Value) ? String(Param.Value) : [ String(Param.Value) ],
+                                value:  Array.isArray(Param.Value) ? Param.Value : [ String(Param.Value) ],
                             })
                         }
                     }
@@ -406,7 +442,7 @@ const ZnunySearchBox = createApp({
                     Result += value;
                 }
                 else {
-                    return values[0] + "<b>, ..+" + (values.length-1) + "</b>";
+                    return values[0] + ", ..+" + (values.length-1);
                 }
             }
             return Result;
@@ -445,6 +481,8 @@ const ZnunySearchBox = createApp({
                 }
             }
             else {
+                this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
+
                 this.CurrentLevel = 2;
                 if(!click) {
                     this.MoveParamBeforeInput(Param);
@@ -456,7 +494,6 @@ const ZnunySearchBox = createApp({
 
                     this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
                     this.CurrentKind = config.findIndex((item) => item.label === Param.label);
-
                     this.InputText = '';
                 }
                 this.CurrentDropdown = {
@@ -509,15 +546,47 @@ const ZnunySearchBox = createApp({
 
             // pressing return
             if (e.which === 13) {
-                this.MoveInputToCorrectPosition();
-                e.preventDefault();
+                if(this.CurrentLevel == 1) {
+                    this.MoveInputToCorrectPosition();
+                    e.preventDefault();
+                }
+                else if(this.CurrentLevel == 2) {
+                    this.MoveInputToCorrectPosition();
+                    e.preventDefault();
 
-                if(!this.Params[this.CurrentParamIndex].value) {
-                    this.Params[this.CurrentParamIndex].value = [this.InputText];
+                    if(!this.Params[this.CurrentParamIndex].value) {
+                        this.Params[this.CurrentParamIndex].value = [this.InputText];
+                    } else {
+                        var index = this.Params[this.CurrentParamIndex].value.indexOf(this.InputText);
+                        if(index < 0) {
+                            this.Params[this.CurrentParamIndex].value = [...this.Params[this.CurrentParamIndex].value, this.InputText];
+                        }
+                    }
                 } else {
-                    var index = this.Params[this.CurrentParamIndex].value.indexOf(this.InputText);
-                    if(index < 0) {
-                        this.Params[this.CurrentParamIndex].value = [...this.Params[this.CurrentParamIndex].value, this.InputText];
+                    if(this.InputText !== '') {
+                        if(this.Params.length > 1) {
+                            var ParamIndex = this.Params.findIndex((item) => item.label === 'Fulltext');
+                            if(ParamIndex > -1) {
+                                this.Params.splice(this.CurrentParamIndex, 1)
+                                this.CurrentParamIndex = ParamIndex;
+                                var index = this.Params[this.CurrentParamIndex].value.indexOf(this.InputText);
+                                if(index < 0) {
+                                    this.Params[this.CurrentParamIndex].value = [...this.Params[this.CurrentParamIndex].value, this.InputText];
+                                }
+                            } else {
+                                this.Params[this.CurrentParamIndex].value = [];
+                                this.Params[this.CurrentParamIndex].value.push(this.InputText)
+                                this.Params[this.CurrentParamIndex].label = 'Fulltext';
+                                this.Params[this.CurrentParamIndex].type = 'token';
+                                this.Params[this.CurrentParamIndex].operator = {
+                                    text: '=',
+                                    code: '=',
+                                    visible: true
+                                };
+                            }
+
+                        }
+
                     }
                 }
 
@@ -567,7 +636,6 @@ const ZnunySearchBox = createApp({
 
         },
         Submit(e) {
-            var LookupFields = [ "Queue", "State", "Type", "Priority", "SLA", "Service" ];
             e.preventDefault();
 
             if(this.InputText !== '' && this.CurrentLevel === 2) {
@@ -578,7 +646,7 @@ const ZnunySearchBox = createApp({
 
             var QueryParams = {};
             var QueryParamsSet = (Field, Operator, Value, Exist) => {
-                if(LookupFields.indexOf(Field) != -1) {
+                if(this.LookupFields.indexOf(Field) != -1) {
                     if(!Exist) {
                         QueryParams[Field] = Value;
                     } else {
@@ -627,6 +695,7 @@ const ZnunySearchBox = createApp({
             var StopLoading = () => {
                 this.Loading = false;
             }
+
             Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=Search', { QueryParams: JSON.stringify(QueryParams), Time: this.showTime, StartWindow: 0 } , function (Response) {
 
                 StopLoading();
