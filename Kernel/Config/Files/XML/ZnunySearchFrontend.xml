@@ -10,7 +10,7 @@
             </Value>
         </Setting>
         <Setting Name="ZnunySearchFrontend::Loader::ExcludeOperators" Required="0" Valid="1">
-            <Description Translatable="1">List of all operators that are excluded from use in the Znuny front-end search component.</Description>
+            <Description Translatable="1">List of all operators that are excluded from use in the Znuny frontend search component.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Array>
@@ -23,7 +23,7 @@
             </Value>
         </Setting>
         <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendFields###000-Framework" Required="0" Valid="1">
-            <Description Translatable="1">Register search fields for Znuny front-end search component.</Description>
+            <Description Translatable="1">Registers search fields for Znuny frontend search component.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Hash>
@@ -72,7 +72,7 @@
             </Value>
         </Setting>
         <Setting Name="ZnunySearchFrontend::Loader::SearchFrontendFieldsOrder" Required="0" Valid="1">
-            <Description Translatable="1">Set order for fields shown in the Znuny front-end search component.</Description>
+            <Description Translatable="1">Sets order for fields shown in the Znuny frontend search component.</Description>
             <Navigation>Core::Search::ZnunySearchFrontend</Navigation>
             <Value>
                 <Hash>

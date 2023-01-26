@@ -48,19 +48,19 @@
                     <li v-if="Param.label" class="zs-token" ref="token">
                         <ul class="zs-tokenwrap">
                             <li :ref="'tokenLabel'+ParamIndex" class="zs-tokenpart zs-label">
-                                {{ fieldName(Param.label) }}
+                                {{ FieldName(Param.label) }}
                             </li>
                             <li :ref="'tokenOperator'+ParamIndex" v-if="Param.operator" class="zs-tokenpart zs-operator">{{Param.operator.text}}</li>
-                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="changeParamValue(Param, 1)" class="zs-tokenchange" type="button" v-html="ParamValueText(Param.value)"></button></li>
+                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="ChangeParamValue(Param, 1)" class="zs-tokenchange" type="button" v-html="ParamValueText(Param.value)"></button></li>
                         </ul>
-                        <button v-if="Param.value" class="zs-tokenremove" type="button" @click="removeToken(ParamIndex)">&times;</button>
+                        <button v-if="Param.value" class="zs-tokenremove" type="button" @click="RemoveToken(ParamIndex)">&times;</button>
                     </li>
                     <li v-if="Param.type === 'input'" class="zs-inputwrap" ref="inputWrap">
                         <input
                             ref="inputField"
                             v-model="InputText"
                             @click="ClickedOnInput"
-                            @keydown="inputKeystroke"
+                            @keydown="InputKeystroke"
                             :disabled="InputDisabled"
                             class="zs-input"
                             type="text"
@@ -80,15 +80,15 @@
                                 </circle>
                             </svg>
                             <ul class="zs-dropdownlist">
-                                <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :class="{ 'active-zs-option': isActive(entry.text) }" ref="dropdownitem">
+                                <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :class="{ 'active-zs-option': IsActive(entry.text) }" ref="dropdownitem">
                                     <button
                                         ref="dropdownbutton"
-                                        @keydown="dropdownKeystroke"
-                                        @click="chooseFromList(entry, entryindex)"
+                                        @keydown="DropdownKeystroke"
+                                        @click="ChooseFromList(entry, entryindex)"
                                         type="button"
                                         class="zs-option"
                                     >
-                                        {{ fieldName(entry.text) }}
+                                        {{ FieldName(entry.text) }}
                                     </button>
                                 </li>
                             </ul>
@@ -96,7 +96,7 @@
                     </div>
             </template>
         </form>
-        <button v-if="Params.length > 1" class="zs-clear" type="button" @click="clearAll">&times;</button>
+        <button v-if="Params.length > 1" class="zs-clear" type="button" @click="ClearAll">&times;</button>
         <button class="zs-submit" type="button" @click="Submit">
             <i class="fa fa-search"></i>
         </button>

@@ -46,7 +46,7 @@ sub Run {
     my $SearchTicketObject      = $Kernel::OM->Get('Kernel::System::Search::Object::Default::Ticket');
     my $SearchQueryTicketObject = $Kernel::OM->Get('Kernel::System::Search::Object::Query::Ticket');
 
-    my $ValidApiFields = $SearchQueryTicketObject->LookupTicketFieldsGet();
+    my $ValidAPIFields = $SearchQueryTicketObject->LookupTicketFieldsGet();
 
     my %Preferences = $UserObject->GetPreferences(
         UserID => $Self->{UserID},
@@ -55,7 +55,7 @@ sub Run {
     my %Operators;
     my %ValidFieldsConfig;
     my %ValidFieldsOrderConfig;
-    my %ValidFieldsDefinition = ();
+    my %ValidFieldsDefinition;
 
     my $OperatorsConfig         = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchOperators')           // {};
     my $ExcludedOperatorsConfig = $ConfigObject->Get('ZnunySearchFrontend::Loader::ExcludeOperators')          // {};
@@ -75,30 +75,27 @@ sub Run {
     # fields need to contain specific type
     # otherwise do not show them
     for my $FieldType ( sort keys %ValidFieldsConfig ) {
-        FIELD_CONFIG:
+        FIELDPROPERTY:
         for my $FieldProperty ( sort keys %{ $ValidFieldsConfig{$FieldType} } ) {
             my $FieldTypeValue = $ValidFieldsConfig{$FieldType}->{$FieldProperty};
             my %FieldDefinition;
 
             if ( $FieldTypeValue eq 'api' ) {
-                if ( grep { $FieldProperty eq $_ } keys %{$ValidApiFields} ) {
+                next FIELDPROPERTY if !$ValidAPIFields->{$FieldProperty};
 
-                    my $AttributeName = $ValidApiFields->{$FieldProperty}->{AttributeName}
-                        ? $ValidApiFields->{$FieldProperty}->{AttributeName}
-                        : $FieldProperty . "ID";
+                my $AttributeName = $ValidAPIFields->{$FieldProperty}->{AttributeName}
+                    ? $ValidAPIFields->{$FieldProperty}->{AttributeName}
+                    : $FieldProperty . "ID";
 
-                    %FieldDefinition = $SearchTicketObject->ValidFieldsPrepare(
-                        Fields      => ["$FieldType\_$AttributeName"],
-                        Object      => "Ticket",
-                        QueryParams => {},
-                    );
+                %FieldDefinition = $SearchTicketObject->ValidFieldsPrepare(
+                    Fields      => ["$FieldType\_$AttributeName"],
+                    Object      => "Ticket",
+                    QueryParams => {},
+                );
 
-                    $ValidFieldsDefinition{$FieldType}->{$FieldProperty}
-                        = $FieldDefinition{$FieldType}->{$AttributeName};
-                }
+                $ValidFieldsDefinition{$FieldType}->{$FieldProperty} = $FieldDefinition{$FieldType}->{$AttributeName};
             }
             elsif ( $FieldTypeValue eq 'customtext' ) {
-
                 %FieldDefinition = $SearchTicketObject->ValidFieldsPrepare(
                     Fields      => ["$FieldType\_$FieldProperty"],
                     Object      => "Ticket",
@@ -107,13 +104,13 @@ sub Run {
 
                 if ( !keys %FieldDefinition ) {
                     delete $ValidFieldsConfig{$FieldType}->{$FieldProperty};
-                    next FIELD_CONFIG;
+                    next FIELDPROPERTY;
                 }
 
-                if ( $FieldProperty =~ /^DynamicField.+/ ) {
+                if ( $FieldProperty =~ m{\ADynamicField} ) {
                     $ValidFieldsDefinition{$FieldType}->{$FieldProperty}
                         = $FieldDefinition{"$FieldType\_DynamicField"}->{$FieldProperty};
-                    next FIELD_CONFIG;
+                    next FIELDPROPERTY;
                 }
 
                 $ValidFieldsDefinition{$FieldType}->{$FieldProperty} = $FieldDefinition{$FieldType}->{$FieldProperty};
@@ -233,17 +230,15 @@ sub Run {
         my $Labels = $SearchTicketObject->{Fields};
 
         # last saved query parameters can have fields that
-        # is no longer available due to config change
+        # are no longer available due to config change
         PARAM:
         for my $Param ( sort keys %{$QueryParams} ) {
             my $ParamToCheck = $Param;
             my $IndexFieldTypeToCheck;
 
             if ( $Param =~ m{(.*)_*(DynamicField_.+)} ) {
-                $ParamToCheck = $2;
-                next PARAM if !$ParamToCheck;
-
-                $IndexFieldTypeToCheck = $1 || 'Ticket';
+                $ParamToCheck          = $2;
+                $IndexFieldTypeToCheck = $1 // 'Ticket';
             }
             elsif ( $Param =~ m{(.+)_(.+)} ) {
                 $ParamToCheck          = $2;
@@ -253,12 +248,17 @@ sub Run {
                 $IndexFieldTypeToCheck = 'Ticket';
             }
 
-            next PARAM
-                if (
-                $ValidFieldsConfig{$IndexFieldTypeToCheck}
-                && $ValidFieldsConfig{$IndexFieldTypeToCheck}->{$ParamToCheck}
+            if (
+                (
+                    $ValidFieldsConfig{$IndexFieldTypeToCheck}
+                    && $ValidFieldsConfig{$IndexFieldTypeToCheck}->{$ParamToCheck}
                 )
-                || $ParamToCheck eq 'Fulltext';
+                || $ParamToCheck eq 'Fulltext'
+                )
+            {
+                next PARAM;
+            }
+
             delete $QueryParams->{$Param};
         }
 
@@ -276,7 +276,7 @@ sub Run {
 
             FIELD:
             for my $Field ( sort keys %{ $ValidFieldsConfig{$FieldIndex} } ) {
-                if ( $Field =~ m{^DynamicField_(.*)} ) {
+                if ( $Field =~ m{\ADynamicField_(.+)} ) {
                     my $DynamicFieldName = $1;
 
                     my $DynamicFieldConfig = $DynamicFieldObject->DynamicFieldGet(
@@ -291,7 +291,7 @@ sub Run {
 
                 my @ConfigFieldOperators = $Operators{$Field} ? split( ',', $Operators{$Field} ) : ();
 
-                if ( $FieldIndex eq "Ticket" ) {
+                if ( $FieldIndex eq 'Ticket' ) {
                     my $FieldType = $ValidFieldsDefinition{$FieldIndex}->{$Field}->{Type};
                     my @FieldAvailableOperators
                         = keys %{ $SearchIndexObject->{SupportedOperators}->{$FieldType}->{Operator} };
@@ -303,7 +303,7 @@ sub Run {
                             };
                         }
                     }
-                    if ( !scalar @FieldOperators ) {
+                    if ( !@FieldOperators ) {
                         for my $Operator (@FieldAvailableOperators) {
                             if ( !grep { $_ eq $Operator } @{$ExcludedOperatorsConfig} ) {
                                 push @FieldOperators, {
@@ -318,7 +318,7 @@ sub Run {
                         operators => \@FieldOperators,
                     };
                     if ( $ValidFieldsConfig{Ticket}->{$Field} eq 'api' ) {
-                        my $Method = $ValidApiFields->{$Field}->{FunctionName};
+                        my $Method = $ValidAPIFields->{$Field}->{FunctionName};
                         $ConfigItem->{api}  = $LayoutObject->{Baselink} . "Action=ZnunySearchFrontend;Subaction=$Field";
                         $ConfigItem->{type} = 'api';
                     }
@@ -327,7 +327,6 @@ sub Run {
                     }
                 }
                 else {
-
                     my $FieldType = $ValidFieldsDefinition{$FieldIndex}->{$Field}->{Type};
                     my @FieldAvailableOperators
                         = keys %{ $SearchIndexObject->{SupportedOperators}->{$FieldType}->{Operator} };
@@ -340,8 +339,7 @@ sub Run {
                             };
                         }
                     }
-                    if ( !scalar @FieldOperators ) {
-
+                    if ( !@FieldOperators ) {
                         for my $Operator (@FieldAvailableOperators) {
                             if ( !grep { $_ eq $Operator } @{$ExcludedOperatorsConfig} ) {
                                 push @FieldOperators, {
@@ -385,7 +383,7 @@ sub Run {
         $Self->{TicketIDs}   = $TicketIDs;
         $Self->{QueryParams} = $QueryParams;
 
-        my @LookupFieldsNames = keys %{$ValidApiFields};
+        my @LookupFieldsNames = keys %{$ValidAPIFields};
         push @LookupFieldsNames, "Fulltext";
 
         my $JSON = $LayoutObject->JSONEncode(
@@ -399,7 +397,6 @@ sub Run {
             },
         );
 
-        # send JSON response
         return $LayoutObject->Attachment(
             ContentType => 'application/json; charset=' . $LayoutObject->{Charset},
             Content     => $JSON,
@@ -407,18 +404,17 @@ sub Run {
             NoCache     => 1,
         );
     }
-    elsif ( grep { $Self->{Subaction} eq $_ } keys %{$ValidApiFields} ) {
-
+    elsif ( grep { $Self->{Subaction} eq $_ } keys %{$ValidAPIFields} ) {
         my %Objects = $Self->ObjectsListGet(
             LookupField    => $Self->{Subaction},
-            ValidApiFields => $ValidApiFields,
+            ValidAPIFields => $ValidAPIFields,
         );
 
         my @Values;
         for my $Key ( sort keys %Objects ) {
             push @Values, {
                 id   => $Key,
-                name => $Objects{$Key}
+                name => $Objects{$Key},
             };
         }
 
@@ -445,7 +441,7 @@ sub Run {
                 ActiveEngineName => $Self->{ActiveEngineName},
                 Connection       => $Self->{Connection},
                 StartHit         => $Self->{StartHit},
-            }
+            },
         );
 
         $Output .= $LayoutObject->Footer();
@@ -457,19 +453,19 @@ sub Run {
 sub ObjectsListGet {
     my ( $Self, %Param ) = @_;
 
-    # check needed stuff
-    for my $Needed (qw(LookupField ValidApiFields)) {
-        if ( !$Param{$Needed} ) {
-            $Kernel::OM->Get('Kernel::System::Log')->Log(
-                Priority => 'error',
-                Message  => "Need $Needed!"
-            );
-            return;
-        }
+    NEEDED:
+    for my $Needed (qw(LookupField ValidAPIFields)) {
+        next NEEDED if $Param{$Needed};
+
+        $Kernel::OM->Get('Kernel::System::Log')->Log(
+            Priority => 'error',
+            Message  => "Need $Needed!"
+        );
+        return;
     }
 
-    my $Module = $Kernel::OM->Get( $Param{ValidApiFields}->{ $Param{LookupField} }->{Module} );
-    my $Method = $Param{ValidApiFields}->{ $Param{LookupField} }->{FunctionNameList};
+    my $Module = $Kernel::OM->Get( $Param{ValidAPIFields}->{ $Param{LookupField} }->{Module} );
+    my $Method = $Param{ValidAPIFields}->{ $Param{LookupField} }->{FunctionNameList};
 
     my %Objects;
     if ( $Param{LookupField} eq "Customer" ) {
@@ -486,13 +482,14 @@ sub ObjectsListGet {
                 $Objects{$CustomerID} = $CustomerCompany{CustomerCompanyName};
             }
         }
+
+        return %Objects;
     }
-    else {
-        %Objects = $Module->$Method(
-            UserID => $Self->{UserID},
-            Valid  => 1
-        );
-    }
+
+    %Objects = $Module->$Method(
+        UserID => $Self->{UserID},
+        Valid  => 1
+    );
 
     return %Objects;
 }
