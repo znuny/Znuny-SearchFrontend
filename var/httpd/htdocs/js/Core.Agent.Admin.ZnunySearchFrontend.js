@@ -78,7 +78,7 @@ const ZnunySearchBox = createApp({
             }
         };
 
-        Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=GetInitialData',{ StartHit: this.StartHit }, function (Response) {
+        Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=GetInitialData',{ StartHit: this.StartHit }, function (Response) {
 
             config = Response.Config;
 
@@ -696,7 +696,7 @@ const ZnunySearchBox = createApp({
                 this.Loading = false;
             }
 
-            Core.AJAX.FunctionCall('/otrs/index.pl?Action=ZnunySearchFrontend;Subaction=Search', { QueryParams: JSON.stringify(QueryParams), Time: this.showTime, StartWindow: 0 } , function (Response) {
+            Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=Search', { QueryParams: JSON.stringify(QueryParams), Time: this.showTime, StartWindow: 0 } , function (Response) {
 
                 StopLoading();
                 if (Response) {
