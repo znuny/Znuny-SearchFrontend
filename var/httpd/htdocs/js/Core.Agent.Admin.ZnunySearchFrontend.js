@@ -10,9 +10,10 @@
 
 "use strict";
 
-var Core = Core || {};
-Core.Agent = Core.Agent || {};
+var Core         = Core || {};
+Core.Agent       = Core.Agent || {};
 Core.Agent.Admin = Core.Agent.Admin || {};
+Core.Config      = Core.Config || {};
 
 var config = [];
 var Vue = Vue;
