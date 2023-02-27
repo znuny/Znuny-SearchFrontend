@@ -294,7 +294,7 @@ sub Run {
                 if ( $FieldIndex eq 'Ticket' ) {
                     my $FieldType = $ValidFieldsDefinition{$FieldIndex}->{$Field}->{Type};
                     my @FieldAvailableOperators
-                        = keys %{ $SearchIndexObject->{SupportedOperators}->{$FieldType}->{Operator} };
+                        = keys %{ $SearchIndexObject->{SupportedOperators}->{Operator}->{$FieldType} };
                     for my $Operator (@ConfigFieldOperators) {
                         if ( grep { $_ eq $Operator } @FieldAvailableOperators ) {
                             push @FieldOperators, {
@@ -329,7 +329,7 @@ sub Run {
                 else {
                     my $FieldType = $ValidFieldsDefinition{$FieldIndex}->{$Field}->{Type};
                     my @FieldAvailableOperators
-                        = keys %{ $SearchIndexObject->{SupportedOperators}->{$FieldType}->{Operator} };
+                        = keys %{ $SearchIndexObject->{SupportedOperators}->{Operator}->{$FieldType} };
 
                     for my $Operator (@ConfigFieldOperators) {
                         if ( grep { $_ eq $Operator } @FieldAvailableOperators ) {
@@ -453,11 +453,13 @@ sub Run {
 sub ObjectsListGet {
     my ( $Self, %Param ) = @_;
 
+    my $LogObject = $Kernel::OM->Get('Kernel::System::Log');
+
     NEEDED:
     for my $Needed (qw(LookupField ValidAPIFields)) {
         next NEEDED if $Param{$Needed};
 
-        $Kernel::OM->Get('Kernel::System::Log')->Log(
+        $LogObject->Log(
             Priority => 'error',
             Message  => "Need $Needed!"
         );
