@@ -45,6 +45,7 @@ sub Run {
     my $ParamObject             = $Kernel::OM->Get('Kernel::System::Web::Request');
     my $SearchTicketObject      = $Kernel::OM->Get('Kernel::System::Search::Object::Default::Ticket');
     my $SearchQueryTicketObject = $Kernel::OM->Get('Kernel::System::Search::Object::Query::Ticket');
+    my $SessionObject           = $Kernel::OM->Get('Kernel::System::AuthSession');
 
     my $ValidAPIFields = $SearchQueryTicketObject->LookupTicketFieldsGet();
 
@@ -431,6 +432,13 @@ sub Run {
         );
     }
     else {
+        # store last screen overview
+        $SessionObject->UpdateSessionID(
+            SessionID => $Self->{SessionID},
+            Key       => 'LastScreenOverview',
+            Value     => $Self->{RequestedURL},
+        );
+
         my $Output = $LayoutObject->Header();
         $Output .= $LayoutObject->NavigationBar();
 
