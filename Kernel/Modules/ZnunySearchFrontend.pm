@@ -53,6 +53,10 @@ sub Run {
         UserID => $Self->{UserID},
     );
 
+    for my $Key (qw(OrderBy SortBy)) {
+        $Self->{SortParams}->{$Key} = $ParamObject->GetParam( Param => $Key ) || '';
+    }
+
     my %Operators;
     my %ValidFieldsConfig;
     my %ValidFieldsOrderConfig;
@@ -148,36 +152,32 @@ sub Run {
             UserID => $Self->{UserID},
         );
 
-        # add permissions parameter
-        $QueryParams->{UserID} = $Self->{UserID};
+        my $SortByParam = $Self->{SortParams}->{SortBy};
 
-        my $Result = $Self->{SearchObject}->Search(
+        my $SortBy  = $SortByParam && $SortByParam eq 'Age' ? 'Created' : $SortByParam;
+        my $OrderBy = $Self->{SortParams}->{OrderBy};
+
+        my $ResultType = 'ARRAY_SIMPLE';
+        my $Result     = $Self->{SearchObject}->Search(
             Objects     => ['Ticket'],
-            QueryParams => $QueryParams,
-            Fields      => [ ["Ticket_TicketID"] ],
-            ResultType  => 'ARRAY',
+            QueryParams => {
+                %{$QueryParams},
+                UserID => $Self->{UserID},
+            },
+            Fields     => [ ["Ticket_TicketID"] ],
+            ResultType => $ResultType,
+            SortBy     => [$SortBy],
+            OrderBy    => [$OrderBy],
         );
 
-        my @TicketIDs = map { $_->{TicketID} } @{ $Result->{Ticket} };
+        $Self->{TicketIDs} = $Result->{Ticket};
+        $Self->{StartHit}  = 1;
 
-        my $JSONTicketIDs = $JSONObject->Encode(
-            Data => \@TicketIDs,
-        );
-
-        $UserObject->SetPreferences(
-            Key    => 'LastSearchZnunySearchFrontendTicketIDs',
-            Value  => $JSONTicketIDs,
-            UserID => $Self->{UserID},
-        );
-
-        $Self->{StartHit} = 1;
         $UserObject->SetPreferences(
             Key    => 'ZnunySearchFrontendStartHit',
             Value  => 1,
             UserID => $Self->{UserID},
         );
-
-        $Self->{TicketIDs} = \@TicketIDs;
 
         my $Response = $LayoutObject->JSONEncode(
             Data => {
@@ -198,15 +198,11 @@ sub Run {
     elsif ( $Self->{Subaction} eq 'GetInitialData' ) {
 
         my $JSONQueryParams = $Preferences{LastSearchZnunySearchFrontendQueryParams};
-        my $JSONTicketIDs   = $Preferences{LastSearchZnunySearchFrontendTicketIDs};
 
-        my $QueryParams;
+        my $QueryParams = {};
         my $TicketIDs;
         if ( defined $JSONQueryParams ) {
             $QueryParams = $JSONObject->Decode( Data => $JSONQueryParams );
-        }
-        if ( defined $JSONTicketIDs ) {
-            $TicketIDs = $JSONObject->Decode( Data => $JSONTicketIDs );
         }
 
         # prepare fields order
@@ -381,8 +377,27 @@ sub Run {
             ]
         };
 
-        $Self->{TicketIDs}   = $TicketIDs;
         $Self->{QueryParams} = $QueryParams;
+
+        my $SortByParam = $Self->{SortParams}->{SortBy};
+
+        my $SortBy  = $SortByParam && $SortByParam eq 'Age' ? 'Created' : $SortByParam;
+        my $OrderBy = $Self->{SortParams}->{OrderBy};
+
+        my $ResultType = 'ARRAY_SIMPLE';
+        my $Result     = $Self->{SearchObject}->Search(
+            Objects     => ['Ticket'],
+            QueryParams => {
+                %{$QueryParams},
+                UserID => $Self->{UserID},
+            },
+            Fields     => [ ["Ticket_TicketID"] ],
+            ResultType => $ResultType,
+            SortBy     => [$SortBy],
+            OrderBy    => [$OrderBy],
+        );
+
+        $Self->{TicketIDs} = $Result->{Ticket};
 
         my @LookupFieldsNames = keys %{$ValidAPIFields};
         push @LookupFieldsNames, "Fulltext";
@@ -432,6 +447,14 @@ sub Run {
         );
     }
     else {
+        $LayoutObject->AddJSData(
+            Key   => 'SortParams',
+            Value => {
+                SortBy  => $Self->{SortParams}->{SortBy},
+                OrderBy => $Self->{SortParams}->{OrderBy},
+            },
+        );
+
         # store last screen overview
         $SessionObject->UpdateSessionID(
             SessionID => $Self->{SessionID},
@@ -518,12 +541,17 @@ sub _ShowTicketList {
         Total       => scalar @{ $Self->{TicketIDs} },
         StartWindow => 0,
         Env         => {
-            Action => 'ZnunySearchFrontend',
-            UserID => $Self->{UserID},
+            Action         => 'ZnunySearchFrontend',
+            UserID         => $Self->{UserID},
+            AdvancedEngine => {
+                ShortName => $Self->{SearchObject}->{Config}->{ActiveEngine},
+            },
         },
         View      => $Self->{View} || 'Small',
         Output    => 1,
         TitleName => 'Search Results',
+        OrderBy   => $Self->{SortParams}->{OrderBy},
+        SortBy    => $Self->{SortParams}->{SortBy}
     ) || '';
 
     return $Output;

@@ -17,5 +17,6 @@
         <File Permission="660" Location="var/httpd/htdocs/skins/Agent/default/css/Core.Agent.Admin.ZnunySearchFrontend.css"/>
         <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/vue-3.2.45/vue.global.js"/>
         <File Permission="660" Location="Kernel/Output/HTML/Templates/Standard/ZnunySearchFrontend.tt"/>
+        <File Permission="660" Location="Custom/Kernel/Output/HTML/TicketOverview/Small.pm"/>
     </Filelist>
 </otrs_package>

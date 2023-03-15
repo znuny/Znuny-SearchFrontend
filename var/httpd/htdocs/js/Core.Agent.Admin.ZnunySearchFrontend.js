@@ -106,7 +106,10 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     }
                 };
 
-                Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=GetInitialData',{ StartHit: this.StartHit }, function (Response) {
+                const SortParams = Core.Config.Get('SortParams') || {};
+                const TicketParams = { ...SortParams, StartHit: this.StartHit } ;
+
+                Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=GetInitialData',TicketParams, function (Response) {
 
                     config = Response.Config;
 
@@ -517,7 +520,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                         }
                         this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
                         this.CurrentKind = config.findIndex((item) => item.label === Param.label);
-                        if (config[this.CurrentKind].type === "customtext") {
+                        if (config[this.CurrentKind] !== undefined && config[this.CurrentKind].type === "customtext") {
                             this.MoveParamBeforeInput(Param);
 
                             this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
