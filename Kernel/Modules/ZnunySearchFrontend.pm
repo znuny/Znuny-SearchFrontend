@@ -196,7 +196,6 @@ sub Run {
         );
     }
     elsif ( $Self->{Subaction} eq 'GetInitialData' ) {
-
         my $JSONQueryParams = $Preferences{LastSearchZnunySearchFrontendQueryParams};
 
         my $QueryParams = {};
