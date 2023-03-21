@@ -263,8 +263,7 @@ sub Run {
 
             # use either Attachment or Article/Ticket
             if ( $FieldIndex eq 'Attachment' ) {
-                $SearchIndexObject
-                    = $Kernel::OM->Get("Kernel::System::Search::Object::Default::ArticleDataMIMEAttachment");
+                $SearchIndexObject = $Kernel::OM->Get("Kernel::System::Search::Object::Default::Ticket");
             }
             else {
                 $SearchIndexObject = $Kernel::OM->Get("Kernel::System::Search::Object::Default::$FieldIndex");
