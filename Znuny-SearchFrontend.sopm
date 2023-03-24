@@ -1,13 +1,14 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <otrs_package version="1.0">
     <Name>Znuny-SearchFrontend</Name>
-    <Version>6.3.0</Version>
+    <Version>6.5.1</Version>
     <Framework>6.5.x</Framework>
     <PackageRequired Version="6.5.1">Znuny-Search</PackageRequired>
     <Vendor>Znuny GmbH</Vendor>
     <URL>http://znuny.com/</URL>
     <License>GNU AFFERO GENERAL PUBLIC LICENSE Version 3, November 2007</License>
     <Description Lang="en">Frontend functionalities related to search engines.</Description>
+    <ChangeLog Version="6.5.1" Date="2023-03-24 16:42:22 +0100">Initial release for Znuny 6.5.</ChangeLog>
     <ChangeLog Version="6.5.0" Date="2023-03-24 14:23:12 +0100">Initial release for Znuny 6.5.</ChangeLog>
     <Filelist>
         <File Permission="660" Location="Kernel/Config/Files/XML/ZnunySearchFrontend.xml"/>
