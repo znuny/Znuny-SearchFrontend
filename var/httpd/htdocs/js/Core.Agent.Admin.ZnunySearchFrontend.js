@@ -162,13 +162,10 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                     // remove stray Params
                     this.Params.forEach((Param, i) => {
-                        if (Param.type === 'token' && (Param.value !== undefined && !Param.value.length)) {
+                        if (Param.type === 'token' && (Param.value === undefined || !Param.value.length)) {
                             this.Params.splice(i, 1);
                         }
                     });
-                },
-                ProcessSarchName(Name) {
-                    return Name.slice(30);
                 },
                 CreateListLevel0 () {
                     this.CurrentDropdown = {
@@ -228,6 +225,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                     // move dropdown to correct position
                     this.$nextTick(() => {
+                        this.MoveInputToCorrectPosition();
                         const labelEl = this.$refs['tokenLabel'+this.CurrentParamIndex][0];
                         const scrollableEl = labelEl.closest('.zs-scrollable');
                         let scrollableOverflowL = 0;
@@ -302,6 +300,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                         }
                         // move dropdown to correct position
                         this.$nextTick(() => {
+                            this.MoveInputToCorrectPosition();
                             const labelEl = this.$refs['tokenOperator'+this.CurrentParamIndex][0];
                             const scrollableEl = labelEl.closest('.zs-scrollable');
                             let scrollableOverflowL = 0;
@@ -326,10 +325,6 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             this.$refs.inputField[0].focus();
                         });
                     }
-
-
-
-
                 },
                 ClickedOnInput() {
                     if (this.CurrentParamIndex === null) {
@@ -408,7 +403,9 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             }
                         }
                         this.Params.push(...SavedSearchParams, this.InputParam)
-                        this.MoveInputToCorrectPosition()
+                        this.$nextTick(() => {
+                            this.MoveInputToCorrectPosition();
+                        });
                     }
                 },
                 RemoveCurrentDropdown() {
@@ -456,7 +453,10 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             this.Params[this.CurrentParamIndex].value = [];
                             this.Params[this.CurrentParamIndex].value.push(entry.text);
                         }
-                        this.$refs.inputField[0].focus();
+                        this.$nextTick(() => {
+                            this.MoveInputToCorrectPosition();
+                            this.$refs.inputField[0].focus();
+                        })
                     }
                 },
                 ParamValueText(values) {
@@ -502,31 +502,23 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                         return 0;
                     })
                 },
-                ChangeParamValue(Param, click) {
+                ChangeParamValue(Param) {
                     if (this.CurrentDropdown) {
-                        if (click) {
-                           this.HideDropdown();
-                        }
-                        else {
-                            this.HideDropdown(1);
-                        }
+                        this.HideDropdown(1);
                     }
                     else {
                         this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
 
                         this.CurrentLevel = 2;
-                        if (!click) {
-                            this.MoveParamBeforeInput(Param);
-                        }
                         this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
                         this.CurrentKind = config.findIndex((item) => item.label === Param.label);
-                        if (config[this.CurrentKind] !== undefined && config[this.CurrentKind].type === "customtext") {
-                            this.MoveParamBeforeInput(Param);
 
-                            this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
-                            this.CurrentKind = config.findIndex((item) => item.label === Param.label);
-                            this.InputText = '';
-                        }
+                        // move parameter before input
+                        this.MoveParamBeforeInput(Param);
+                        this.CurrentParamIndex = this.Params.findIndex((item) => item.label === Param.label);
+                        this.CurrentKind = config.findIndex((item) => item.label === Param.label);
+                        this.InputText = '';
+
                         this.CurrentDropdown = {
                             type: 'dropdown',
                             items: [...this.Params[this.CurrentParamIndex].value]
@@ -534,9 +526,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                         this.Params.splice(this.CurrentParamIndex + 1, 0, this.CurrentDropdown);
                         this.CreateListLevel2();
                         this.$nextTick(() => {
-                            if (!click) {
-                                this.$refs.inputField[0].focus();
-                            }
+                            this.$refs.inputField[0].focus();
                         });
                     }
                 },
@@ -575,25 +565,40 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                     }
 
-                    // pressing return
+                    // pressing enter
                     if (e.which === 13) {
                         if (this.CurrentLevel == 1) {
                             this.MoveInputToCorrectPosition();
+                            this.ResetCurrents();
                             e.preventDefault();
                         }
                         else if (this.CurrentLevel == 2) {
-                            this.MoveInputToCorrectPosition();
                             e.preventDefault();
 
-                            if (!this.Params[this.CurrentParamIndex].value) {
-                                this.Params[this.CurrentParamIndex].value = [this.InputText];
-                            } else {
-                                var index = this.Params[this.CurrentParamIndex].value.indexOf(this.InputText);
-                                if (index < 0) {
-                                    this.Params[this.CurrentParamIndex].value = [...this.Params[this.CurrentParamIndex].value, this.InputText];
+                            // prevent using empty value in the filters
+                            if(this.InputText !== undefined && this.InputText !== ''){
+                                // prevent lookup fields filter to use value from the input
+                                if(!(this.Params[this.CurrentParamIndex].label !== undefined &&
+                                     this.LookupFields.includes(this.Params[this.CurrentParamIndex].label))){
+                                    // check if any values exists in the filter
+                                    if (!this.Params[this.CurrentParamIndex].value) {
+                                        // set filter
+                                        this.Params[this.CurrentParamIndex].value = [this.InputText];
+                                    } else {
+                                        // update filter
+                                        var index = this.Params[this.CurrentParamIndex].value.indexOf(this.InputText);
+                                        if (index < 0) {
+                                            this.Params[this.CurrentParamIndex].value = [...this.Params[this.CurrentParamIndex].value, this.InputText];
+                                        }
+                                    }
+                                    // refresh input position
+                                    this.$nextTick(() => {
+                                        this.MoveInputToCorrectPosition();
+                                    })
                                 }
                             }
                         } else {
+                            // support for fulltext parameter set when no filters were selected
                             if (this.InputText !== '') {
                                 if (this.Params.length > 1) {
                                     var ParamIndex = this.Params.findIndex((item) => item.label === 'Fulltext');
@@ -628,16 +633,12 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                 MoveInputToCorrectPosition() {
                     const labelEl = this.$refs.inputWrap[0];
                     const scrollableEl = labelEl.closest('.zs-scrollable');
+
                     if (scrollableEl !== undefined) {
-                        setTimeout(() => {
-                            scrollableEl.scrollLeft = scrollableEl.scrollWidth
-                        }, 200)
+                        scrollableEl.scrollLeft = scrollableEl.scrollWidth;
                     }
                 },
                 HideDropdown(MoveInput) {
-                    if (MoveInput) {
-                        this.MoveInputToCorrectPosition();
-                    }
                     var HideWithTokenRemove = () => {
                         this.RemoveToken(this.CurrentParamIndex);
                         this.CurrentLevel = null;
@@ -663,6 +664,12 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             this.CurrentParamIndex = null;
                             this.RemoveCurrentDropdown();
                         }
+                    }
+
+                    if (MoveInput) {
+                        this.$nextTick(() => {
+                            this.MoveInputToCorrectPosition();
+                        })
                     }
 
                 },

@@ -51,7 +51,7 @@
                                 {{ FieldName(Param.label) }}
                             </li>
                             <li :ref="'tokenOperator'+ParamIndex" v-if="Param.operator" class="zs-tokenpart zs-operator">{{Param.operator.text}}</li>
-                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="ChangeParamValue(Param, 1)" class="zs-tokenchange" type="button" v-html="ParamValueText(Param.value)"></button></li>
+                            <li :ref="'tokenValue'+ParamIndex" v-if="Param.value" class="zs-tokenpart zs-value"><button @click="ChangeParamValue(Param)" class="zs-tokenchange" type="button" v-html="ParamValueText(Param.value)"></button></li>
                         </ul>
                         <button v-if="Param.value" class="zs-tokenremove" type="button" @click="RemoveToken(ParamIndex)">&times;</button>
                     </li>
