@@ -8,8 +8,9 @@
 
 <div class="SearchContainer" id="SearchBox">
     <div class="zs-box" id="zs-box">
-        <div class="zs-dropdownwrap">
+        <div class="zs-dropdownwrap Hidden" ref="dropdownwrapbox">
             <button
+            [% IF !Data.Connection %] disabled = "disabled" [% END %]
                 class="zs-dropdowntoggle"
                 type="button"
             >
@@ -78,7 +79,7 @@
             </template>
         </form>
         <button v-if="Params.length > 1" class="zs-clear" type="button" @click="ClearAll">&times;</button>
-        <button class="zs-submit" type="button" @click="Submit">
+        <button [% IF !Data.Connection %] disabled = "disabled" [% END %] class="zs-submit" type="button" @click="Submit">
             <i class="fa fa-search"></i>
         </button>
     </div>

@@ -196,6 +196,13 @@ sub Run {
         );
     }
     elsif ( $Self->{Subaction} eq 'GetInitialData' ) {
+        return $LayoutObject->Attachment(
+            ContentType => 'application/json; charset=' . $LayoutObject->{Charset},
+            Content     => '{ "NoConnection": 1}',
+            Type        => 'inline',
+            NoCache     => 1,
+        ) if !$Self->{Connection};
+
         my $JSONQueryParams = $Preferences{LastSearchZnunySearchFrontendQueryParams};
 
         my $QueryParams = {};
@@ -467,9 +474,10 @@ sub Run {
         $Output .= $LayoutObject->Output(
             TemplateFile => 'ZnunySearchFrontend',
             Data         => {
-                ActiveEngineName => $Self->{ActiveEngineName},
-                Connection       => $Self->{Connection},
-                StartHit         => $Self->{StartHit},
+                ActiveEngineName => $Self->{ActiveEngineName}
+                    || $LayoutObject->{LanguageObject}->Translate('No engine configured'),
+                Connection => $Self->{Connection},
+                StartHit   => $Self->{StartHit},
             },
         );
 

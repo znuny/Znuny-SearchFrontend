@@ -22,6 +22,7 @@ sub Data {
     $Self->{Translation}->{'List of all operators that are excluded from use in the Znuny frontend search component.'} = 'Liste der Operatoren, die von der Benutzung im Such-Frontend ausgeschlossen werden sollen.';
     $Self->{Translation}->{'Registers search fields for Znuny frontend search component.'} = 'Registriert Felder für das Such-Frontend.';
     $Self->{Translation}->{'Sets order for fields shown in the Znuny frontend search component.'} = 'Definiert die Reihenfolge der Felder, die im Such-Frontend angezeigt werden.';
+    $Self->{Translation}->{'No engine configured'} = 'Keine Engine konfiguriert';
 }
 
 1;

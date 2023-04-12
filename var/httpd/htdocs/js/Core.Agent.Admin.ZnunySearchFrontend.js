@@ -90,7 +90,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                 }
             },
             mounted () {
-
+                this.$refs.dropdownwrapbox.classList.remove('Hidden')
                 this.StartHit = $('#StartHit').val();
 
                 this.Params.push(this.InputParam);
@@ -108,16 +108,19 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                 const TicketParams = { ...SortParams, StartHit: this.StartHit } ;
 
                 Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=GetInitialData',TicketParams, function (Response) {
-
                     config = Response.Config;
 
-                    var Sort = (a,b) => {
+                    if (Response.NoConnection) {
+                        return;
+                    }
+
+                    var Sort = (a, b) => {
                         var IndexA = Response.FieldsOrder.indexOf(a.label);
                         var IndexB = Response.FieldsOrder.indexOf(b.label)
                         return ((IndexA > -1 ? IndexA : Infinity) - (IndexB > -1 ? IndexB : Infinity));
                     }
                     config.sort(function(a, b) {
-                      return Sort(a,b);
+                      return Sort(a, b);
                     });
 
                     $('#TicketList').html(Response.HTML);
