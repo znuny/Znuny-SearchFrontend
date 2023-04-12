@@ -12,8 +12,6 @@
             <button
                 class="zs-dropdowntoggle"
                 type="button"
-                :aria-expanded="SavedSearches"
-                @click="ToggleSavedSearches"
             >
                 <span>[% Data.ActiveEngineName %]</span>
                 [% IF Data.Connection %]
@@ -23,23 +21,6 @@
                 [% END %]
                 <svg class="zs-dropdownsymbol" viewBox="0 0 16 16"><path d="M16 5.5l-1.5-1.5-6.5 6.5-6.5-6.5-1.5 1.5 8 8 8-8z"></path></svg>
             </button>
-
-            <div class="zs-dropdown" id="SavedSearchesBox" v-if="SavedSearches" tabindex="0">
-                <div class="zs-dropdowncontent">
-
-                    <div v-if="LastSearches.length === 0" class="zs-dropdownmessage" >
-                        You don't have any saved queries.
-                    </div>
-                    <ul  v-else class="zs-dropdownlist">
-                        <li v-for="Search in LastSearches">
-                            <button type="button" class="zs-option" @click="SetParamsAndSearch(Search.Data)">
-                                {{ Search.Name }}
-                            </button>
-                        </li>
-                    </ul>
-
-            </div>
-            </div>
         </div>
 
         <form class="zs-scrollable" role="search" @submit="Submit">

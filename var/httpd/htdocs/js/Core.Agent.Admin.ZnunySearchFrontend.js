@@ -71,10 +71,8 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
         const ZnunySearchBox = createApp({
             data() {
                 return {
-                    SavedSearches: false,
                     LookupFields: null,
                     FieldsOrder: null,
-                    LastSearches: [],
                     Params: [],
                     Loading: false,
                     InputText: '',
@@ -147,9 +145,6 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                 },
             },
             methods: {
-                ToggleSavedSearches() {
-                    this.SavedSearches = !this.SavedSearches;
-                },
                 ClearAll() {
                     this.ResetCurrents();
                     this.Params = [this.InputParam];
@@ -360,8 +355,6 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     this.Params.splice(this.CurrentParamIndex, 0, this.InputParam);
                 },
                 SetParams(Data) {
-
-                    this.SavedSearches = false;
 
                     if (Data != {}) {
                         this.Params = [];
@@ -714,18 +707,22 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                         if (Param.type === 'token' && Param.value) {
                             try {
                                 ParamValue = JSON.parse(ParamValue)
-                            } catch (e) {
-                                // TODO catch
+                            } catch {
+                                // don't need to handle parsing error
+                                // not valid JSON message needs to be
+                                // silenced as not valid JSON is also
+                                // expected
                             }
+                            finally {
+                                var ParamAlreadyExist = QueryParams[Param.label] ? 1 : 0;
 
-                            var ParamAlreadyExist = QueryParams[Param.label] ? 1 : 0;
-
-                            if (!ParamAlreadyExist) {
-                                QueryParamsSet(Param.label, Param.operator.code, ParamValue);
-                            }
-                            else {
-                                QueryParamsSet(Param.label, Param.operator.code, ParamValue, 1);
-                            }
+                                if (!ParamAlreadyExist) {
+                                    QueryParamsSet(Param.label, Param.operator.code, ParamValue);
+                                }
+                                else {
+                                    QueryParamsSet(Param.label, Param.operator.code, ParamValue, 1);
+                                }
+                            };
                         }
                     }
                     this.Loading = true;
