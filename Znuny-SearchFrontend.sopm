@@ -22,5 +22,8 @@ Filters no longer accept empty values; Removed unused functions.</ChangeLog>
         <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/vue-3.2.45/vue.global.js"/>
         <File Permission="660" Location="Kernel/Output/HTML/Templates/Standard/ZnunySearchFrontend.tt"/>
         <File Permission="660" Location="Custom/Kernel/Output/HTML/TicketOverview/Small.pm"/>
+        <File Permission="660" Location="Custom/Kernel/Modules/AgentDashboardCommon.pm"/>
+        <File Permission="660" Location="Custom/Kernel/Output/HTML/Templates/Standard/AgentDashboardCommon.tt"/>
+        <File Permission="660" Location="Kernel/Output/HTML/Dashboard/ES/TicketGeneric.pm"/>
     </Filelist>
 </otrs_package>
