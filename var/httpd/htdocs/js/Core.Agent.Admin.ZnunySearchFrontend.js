@@ -66,6 +66,22 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
           },
         };
 
+        var clickOutsideOptions = {
+          beforeMount: (el, binding) => {
+            el.clickOutsideEvent = event => {
+                if($(event.target).parents('.zs-scrollable-options').length == 0 &&
+                   $(event.target).parents('.zs-dropdownwrap').length == 0 &&
+                    event.target.className !== "zs-dropdowntoggle"){
+                    binding.value(1);
+                }
+            };
+            document.addEventListener("click", el.clickOutsideEvent);
+          },
+          unmounted: el => {
+            document.removeEventListener("click", el.clickOutsideEvent);
+          },
+        };
+
         const { createApp } = Vue;
 
         const ZnunySearchBox = createApp({
@@ -86,14 +102,16 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     StartHit: 1,
                     Labels: [],
                     Operators: [],
-                    ShowTime: 0
+                    ShowTime: 0,
+                    MoreOptions: [],
                 }
             },
             mounted () {
-                this.$refs.dropdownwrapbox.classList.remove('Hidden')
-                this.StartHit = $('#StartHit').val();
+                var vm = this;
 
-                this.Params.push(this.InputParam);
+                vm.$refs.dropdownwrapbox.classList.remove('Hidden')
+                vm.StartHit = $('#StartHit').val();
+                vm.Params.push(this.InputParam);
 
                 var SetProperties = (LookupFields, LastSearchQueryParams) => {
                     this.InputDisabled = 0;
@@ -113,6 +131,8 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     if (Response.NoConnection) {
                         return;
                     }
+
+                    vm.MoreOptions = Response.MoreOptions;
 
                     var Sort = (a, b) => {
                         var IndexA = Response.FieldsOrder.indexOf(a.label);
@@ -404,12 +424,60 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                         });
                     }
                 },
+                SwitchClass(el, from, to){
+                    $(el).removeClass(from).addClass(to);
+                },
+                LastItem(array){
+                    return array.slice(-1)[0];
+                },
+                MakeAnArray(el){
+                    if(Array.isArray(el)){
+                        return el;
+                    } else {
+                        return [el];
+                    }
+                },
                 RemoveCurrentDropdown() {
                     if (this.CurrentDropdown) {
                         const CurrentDropdownIndex = this.Params.findIndex((Param) => Param.type === 'dropdown');
                         this.Params.splice(CurrentDropdownIndex, 1);
                     }
                     this.CurrentDropdown = null;
+                },
+                HideOptionsDropdown() {
+                    if(!$(this.$refs.dropdownOptions).hasClass('Hidden')){
+                        $(this.$refs.dropdownOptions).addClass('Hidden');
+                        this.SwitchClass(this.$refs.dropdownOptionsCaret, 'fa-caret-down', 'fa-caret-right');
+                    }
+                },
+                ToggleOptionsDropdown() {
+                    $(this.$refs.dropdownOptions).toggleClass('Hidden');
+                    if($(this.$refs.dropdownOptions).hasClass('Hidden')){
+                        this.SwitchClass(this.$refs.dropdownOptionsCaret, 'fa-caret-down', 'fa-caret-right')
+                    } else {
+                        this.SwitchClass(this.$refs.dropdownOptionsCaret, 'fa-caret-right', 'fa-caret-down')
+                    }
+                },
+                ChooseFromOptions(index, type) {
+                    if(type !== undefined && index !== undefined){
+                        if(type == 'dropdown'){
+                            const optionItem = this.$refs['optionItem'+index][0];
+                            const dropdown = $(optionItem).next();
+
+                            dropdown.toggleClass('Hidden');
+                            if(optionItem !== undefined){
+                                if(dropdown.hasClass('Hidden')){
+                                    this.SwitchClass($(optionItem).children('i'), 'fa-caret-down', 'fa-caret-right')
+                                } else {
+                                    this.SwitchClass($(optionItem).children('i'), 'fa-caret-right', 'fa-caret-down')
+                                }
+                            }
+                        }
+                    }
+                },
+                ChooseFromOptionsItem(item, itemIndex) {
+                    this.RemoveCurrentDropdown();
+                    this.SetParams(item);
                 },
                 ChooseFromList(entry, entryindex) {
                     if (this.CurrentLevel === 0) {
@@ -748,6 +816,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
         });
 
         ZnunySearchBox.directive('click-outside', clickOutside);
+        ZnunySearchBox.directive('click-outside-options', clickOutsideOptions);
         ZnunySearchBox.mount('#SearchBox');
         // helper functions
 

@@ -9,10 +9,11 @@
 <div class="SearchContainer" id="SearchBox">
     <div class="zs-box" id="zs-box">
         <div class="zs-dropdownwrap Hidden" ref="dropdownwrapbox">
-            <button
+            <button v-click-outside-options="HideOptionsDropdown"
             [% IF !Data.Connection %] disabled = "disabled" [% END %]
                 class="zs-dropdowntoggle"
                 type="button"
+                @click="ToggleOptionsDropdown()"
             >
                 <span>[% Data.ActiveEngineName %]</span>
                 [% IF Data.Connection %]
@@ -20,11 +21,70 @@
                 [% ELSE %]
                     <i style="color:red" class="fa fa-times"></i>
                 [% END %]
-                <svg class="zs-dropdownsymbol" viewBox="0 0 16 16"><path d="M16 5.5l-1.5-1.5-6.5 6.5-6.5-6.5-1.5 1.5 8 8 8-8z"></path></svg>
+                <i ref="dropdownOptionsCaret" class="fa fa-caret-right"></i>
             </button>
+            <div class="zs-scrollable-options Hidden" ref="dropdownOptions">
+                <template v-for="(option, index) in MoreOptions">
+                    <div v-if="option.Type === 'dropdown'" class="zs-dropdown" >
+                        <div class="zs-dropdowncontent">
+                            <ul class="zs-dropdownlist">
+                                <li
+                                @click="ChooseFromOptions(index, 'dropdown')"
+                                :class="'zs-option ' + option.Class"
+                                :ref="'optionItem'+index"> {{ option.Name }}
+                                    <i
+                                    :ref="'optionItemCaret'+index"
+                                    class="fa fa-caret-right">
+                                    </i>
+                                </li>
+
+                                <div class="zs-dropdown Hidden" ref="dropdownOptionsItem">
+                                    <ul class="zs-dropdownlist zs-dropdownoddlist">
+                                        <li v-for="(item, itemIndex) in option.Items"
+                                            class = 'zs-option'
+                                            :ref="'dropdownOptionItem'+index+'_'+itemIndex"
+                                            @click="ChooseFromOptionsItem(item, itemIndex)"
+                                        >
+                                            <div class='zs-saved-filters-counter'>{{ itemIndex + 1 }}:</div>
+                                            <div v-for="(filterdata, property) in item">
+                                                <div class='zs-option-filters-row'>
+                                                    <span class='zs-saved-filters-property'>{{ FieldName(property) }}<span>
+                                                    <div v-for="(data, dataindex) in filterdata">
+                                                        <template v-if="data.Operator && data.Value">
+                                                            <span v-if="data.Operator" class='zs-saved-filters-operator'>
+                                                                {{data.Operator}}
+                                                            </span>
+                                                            <span v-else class='zs-saved-filters-operator'>
+                                                                =
+                                                            </span>
+                                                            <span class='zs-saved-filters-value'>:
+                                                                <template v-for="(value, valueIndex) in MakeAnArray(data.Value)">
+                                                                    {{value}}<template v-if="valueIndex != Object.keys(MakeAnArray(data.Value)).length - 1">, </template>
+                                                                </template>
+                                                            </span>
+                                                        </template>
+                                                        <template v-else>
+                                                            <span class='zs-saved-filters-operator'>
+                                                                =
+                                                            </span>
+                                                            <span class='zs-saved-filters-value'>
+                                                                {{data}}
+                                                            </span>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </ul>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
 
-        <form class="zs-scrollable" role="search" @submit="Submit">
+        <form id='Filters' class="zs-scrollable" role="search" @submit="Submit">
             <ul class="zs-tokens" ref="dropdownlist" v-click-outside="HideDropdown">
                 <template v-for="(Param, ParamIndex) in Params">
                     <li v-if="Param.label" class="zs-token" ref="token">
@@ -61,7 +121,7 @@
                                     <animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform>
                                 </circle>
                             </svg>
-                            <ul class="zs-dropdownlist">
+                            <ul class="zs-dropdownlist zs-dropdownevenlist">
                                 <li v-for="(entry, entryindex) in Param.items.filter((item) => item.visible === true)" :class="{ 'active-zs-option': IsActive(entry.text) }" ref="dropdownitem">
                                     <button
                                         ref="dropdownbutton"

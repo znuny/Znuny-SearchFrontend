@@ -142,13 +142,71 @@ sub Run {
         }
     }
 
+    my $MaxLastSavedQueriesCount = 10;
+
     if ( $Self->{Subaction} eq 'Search' ) {
         my $JSONQueryParams = $ParamObject->GetParam( Param => 'QueryParams' );
         my $QueryParams     = $JSONObject->Decode( Data => $JSONQueryParams );
 
+        my $Preferences = $UserObject->GetPreferences(
+            UserID => $Self->{UserID},
+        );
+
+        my $SavedQueriesJSON = $Preferences{ZnunySearchFrontendSavedFilters} || '[]';
+
+        my $SavedQueries = $JSONObject->Decode(
+            Data => $SavedQueriesJSON,
+        );
+
+        my $ChangedOrder;
+        if ( IsArrayRefWithData($SavedQueries) ) {
+
+            SAVEDQUERY:
+            for ( my $i = 0; $i < scalar @{$SavedQueries}; $i++ ) {
+                my $SavedQuery = $SavedQueries->[$i];
+
+                my $DataIsDifferent = DataIsDifferent(
+                    Data1 => \$SavedQuery,
+                    Data2 => \$QueryParams,
+                );
+
+                my $SameQuery = !$DataIsDifferent;
+                next SAVEDQUERY if !$SameQuery;
+
+                # change order
+                $SavedQuery = delete $SavedQueries->[$i];
+                if ( !$ChangedOrder && IsHashRefWithData($SavedQuery) ) {
+                    @{$SavedQueries} = grep { defined $_ } @{$SavedQueries};
+                    $ChangedOrder = 1;
+                    unshift @{$SavedQueries}, $SavedQuery;
+                }
+            }
+        }
+        else {
+            $SavedQueries = [];
+        }
+
+        if ( !$ChangedOrder && IsHashRefWithData($QueryParams) ) {
+            unshift @{$SavedQueries}, $QueryParams;
+        }
+
+        if ( scalar @{$SavedQueries} > $MaxLastSavedQueriesCount ) {
+            @{$SavedQueries} = @{$SavedQueries}[ 0 .. $MaxLastSavedQueriesCount - 1 ];
+        }
+
+        $SavedQueriesJSON = $JSONObject->Encode(
+            Data => $SavedQueries,
+        );
+
         $UserObject->SetPreferences(
-            Key    => 'LastSearchZnunySearchFrontendQueryParams',
+            Key    => 'ZnunySearchFrontendLastSearch',
             Value  => $JSONQueryParams,
+            UserID => $Self->{UserID},
+        );
+
+        $UserObject->SetPreferences(
+            Key    => 'ZnunySearchFrontendSavedFilters',
+            Value  => $SavedQueriesJSON,
             UserID => $Self->{UserID},
         );
 
@@ -203,12 +261,17 @@ sub Run {
             NoCache     => 1,
         ) if !$Self->{Connection};
 
-        my $JSONQueryParams = $Preferences{LastSearchZnunySearchFrontendQueryParams};
+        my $JSONSavedSearchParamsPref = $Preferences{ZnunySearchFrontendSavedFilters};
+        my $JSONLastSearchPref        = $Preferences{ZnunySearchFrontendLastSearch};
 
         my $QueryParams = {};
+        my $SavedSearchParamsPref;
         my $TicketIDs;
-        if ( defined $JSONQueryParams ) {
-            $QueryParams = $JSONObject->Decode( Data => $JSONQueryParams );
+        if ( defined $JSONSavedSearchParamsPref ) {
+            $SavedSearchParamsPref = $JSONObject->Decode( Data => $JSONSavedSearchParamsPref );
+        }
+        if ( defined $JSONLastSearchPref ) {
+            $QueryParams = $JSONObject->Decode( Data => $JSONLastSearchPref );
         }
 
         # prepare fields order
@@ -389,6 +452,18 @@ sub Run {
         my $SortBy  = $SortByParam && $SortByParam eq 'Age' ? 'Created' : $SortByParam;
         my $OrderBy = $Self->{SortParams}->{OrderBy};
 
+        my $LastSavedFiltersStrg = $LayoutObject->{LanguageObject}->Translate('Last saved filters');
+
+        my $MoreOptions = [
+            {
+                ID    => 'last-saved-filters',
+                Type  => 'dropdown',
+                Name  => $LastSavedFiltersStrg,
+                Items => $SavedSearchParamsPref || [],
+                Class => IsArrayRefWithData($SavedSearchParamsPref) ? '' : 'zs-option-disabled',
+            }
+        ];
+
         my $ResultType = 'ARRAY_SIMPLE';
         my $Result     = $Self->{SearchObject}->Search(
             Objects     => ['Ticket'],
@@ -415,6 +490,7 @@ sub Run {
                 StartHit              => $Self->{StartHit},
                 LookupFields          => \@LookupFieldsNames,
                 FieldsOrder           => \@FieldsOrder,
+                MoreOptions           => $MoreOptions,
             },
         );
 
