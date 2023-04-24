@@ -181,7 +181,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                     // remove stray Params
                     this.Params.forEach((Param, i) => {
-                        if (Param.type === 'token' && (Param.value === undefined || !Param.value.length)) {
+                        if (Param.type === 'token' && (Param.value === undefined || Param.value === null)) {
                             this.Params.splice(i, 1);
                         }
                     });
@@ -489,7 +489,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                                 return;
                             }
                         }
-                        this.CurrentKind = entryindex;
+                        this.CurrentKind = config.findIndex((item) => item.label === entry.text);
                         this.Params[this.CurrentParamIndex].label = entry.text;
                         this.CreateListLevel1();
                         this.CurrentLevel = 1;
@@ -621,13 +621,16 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     // pressing down: set focus to dropdown list, first entry
                     if (e.which === 40 || e.which === 9) {
                         e.preventDefault();
-                        this.$refs.dropdownbutton[0].focus();
+                        if (this.$refs.dropdownbutton.length > 0){
+                            this.$refs.dropdownbutton[0].focus();
+                        }
                     }
                     // pressing up: set focus to dropdown list, last entry
                     if (e.which === 38) {
                         e.preventDefault();
-                        this.$refs.dropdownbutton[this.CurrentDropdown.items.length - 1].focus();
-
+                        if (this.$refs.dropdownbutton.length > 0){
+                            this.$refs.dropdownbutton[this.CurrentDropdown.items.length - 1].focus();
+                        }
                     }
 
                     // pressing enter
