@@ -54,7 +54,7 @@ sub Run {
     );
 
     for my $Key (qw(OrderBy SortBy)) {
-        $Self->{SortParams}->{$Key} = $ParamObject->GetParam( Param => $Key ) || '';
+        $Self->{SortParams}->{$Key} = $ParamObject->GetParam( Param => $Key );
     }
 
     my %Operators;
@@ -446,11 +446,30 @@ sub Run {
         };
 
         $Self->{QueryParams} = $QueryParams;
+        my $HTML = '';
 
-        my $SortByParam = $Self->{SortParams}->{SortBy};
+        if ( !$ParamObject->GetParam( Param => 'IgnoreSearch' ) ) {
+            my $SortByParam = $Self->{SortParams}->{SortBy};
 
-        my $SortBy  = $SortByParam && $SortByParam eq 'Age' ? 'Created' : $SortByParam;
-        my $OrderBy = $Self->{SortParams}->{OrderBy};
+            my $SortBy  = $SortByParam && $SortByParam eq 'Age' ? 'Created' : $SortByParam;
+            my $OrderBy = $Self->{SortParams}->{OrderBy};
+
+            my $ResultType = 'ARRAY_SIMPLE';
+            my $Result     = $Self->{SearchObject}->Search(
+                Objects     => ['Ticket'],
+                QueryParams => {
+                    %{$QueryParams},
+                    UserID => $Self->{UserID},
+                },
+                Fields     => [ ["Ticket_TicketID"] ],
+                ResultType => $ResultType,
+                SortBy     => [$SortBy],
+                OrderBy    => [$OrderBy],
+            );
+
+            $Self->{TicketIDs} = $Result->{Ticket};
+            $HTML = $Self->_ShowTicketList();
+        }
 
         my $LastSavedFiltersStrg = $LayoutObject->{LanguageObject}->Translate('Last saved filters');
 
@@ -464,28 +483,13 @@ sub Run {
             }
         ];
 
-        my $ResultType = 'ARRAY_SIMPLE';
-        my $Result     = $Self->{SearchObject}->Search(
-            Objects     => ['Ticket'],
-            QueryParams => {
-                %{$QueryParams},
-                UserID => $Self->{UserID},
-            },
-            Fields     => [ ["Ticket_TicketID"] ],
-            ResultType => $ResultType,
-            SortBy     => [$SortBy],
-            OrderBy    => [$OrderBy],
-        );
-
-        $Self->{TicketIDs} = $Result->{Ticket};
-
         my @LookupFieldsNames = keys %{$ValidAPIFields};
         push @LookupFieldsNames, "Fulltext";
 
         my $JSON = $LayoutObject->JSONEncode(
             Data => {
                 Config                => \@Config,
-                HTML                  => $Self->_ShowTicketList(),
+                HTML                  => $HTML,
                 LastSearchQueryParams => $QueryParams,
                 StartHit              => $Self->{StartHit},
                 LookupFields          => \@LookupFieldsNames,
@@ -534,6 +538,12 @@ sub Run {
                 SortBy  => $Self->{SortParams}->{SortBy},
                 OrderBy => $Self->{SortParams}->{OrderBy},
             },
+        );
+
+        my $IgnoreSearch = $ParamObject->GetParam( Param => 'IgnoreSearch' );
+        $LayoutObject->AddJSData(
+            Key   => 'IgnoreSearch',
+            Value => $IgnoreSearch,
         );
 
         # store last screen overview
@@ -632,8 +642,8 @@ sub _ShowTicketList {
         View      => $Self->{View} || 'Small',
         Output    => 1,
         TitleName => 'Search Results',
-        OrderBy   => $Self->{SortParams}->{OrderBy},
-        SortBy    => $Self->{SortParams}->{SortBy}
+        OrderBy   => $Self->{SortParams}->{OrderBy} || '',
+        SortBy    => $Self->{SortParams}->{SortBy} || ''
     ) || '';
 
     return $Output;

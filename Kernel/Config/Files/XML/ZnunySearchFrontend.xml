@@ -163,7 +163,7 @@
                         </Item>
                         <Item Key="Description" Translatable="1">Znuny search.</Item>
                         <Item Key="Name" Translatable="1">Znuny search</Item>
-                        <Item Key="Link">Action=ZnunySearchFrontend</Item>
+                        <Item Key="Link">Action=ZnunySearchFrontend;IgnoreSearch=1;</Item>
                         <Item Key="LinkOption"></Item>
                         <Item Key="NavBar">ZnunySearchFrontend</Item>
                         <Item Key="Type">Menu</Item>

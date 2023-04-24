@@ -122,10 +122,11 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     }
                 };
 
-                const SortParams = Core.Config.Get('SortParams') || {};
-                const TicketParams = { ...SortParams, StartHit: this.StartHit } ;
+                const SortParams             = Core.Config.Get('SortParams') || {};
+                const TicketParams           = { ...SortParams, StartHit: this.StartHit } ;
+                const IgnoreSearch           = Core.Config.Get('IgnoreSearch') || 0;
 
-                Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=GetInitialData',TicketParams, function (Response) {
+                Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=GetInitialData',{ ...TicketParams, IgnoreSearch: IgnoreSearch}, function (Response) {
                     config = Response.Config;
 
                     if (Response.NoConnection) {
