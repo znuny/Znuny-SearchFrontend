@@ -139,7 +139,7 @@
             </template>
         </form>
         <button v-if="Params.length > 1" class="zs-clear" type="button" @click="ClearAll">&times;</button>
-        <button [% IF !Data.Connection %] disabled = "disabled" [% END %] class="zs-submit" type="button" @click="Submit">
+        <button [% IF !Data.Connection %] disabled = "disabled" [% END %] class="zs-submit" ref="searchformsubmitbutton" type="button" @click="Submit">
             <i class="fa fa-search"></i>
         </button>
     </div>

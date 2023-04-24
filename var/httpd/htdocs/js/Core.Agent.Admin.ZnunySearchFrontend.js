@@ -635,7 +635,10 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                     // pressing enter
                     if (e.which === 13) {
-                        if (this.CurrentLevel == 1) {
+                        if(this.CurrentLevel == 0){
+                            $(this.$refs.searchformsubmitbutton).trigger('click');
+                        }
+                        else if (this.CurrentLevel == 1) {
                             this.MoveInputToCorrectPosition();
                             this.ResetCurrents();
                             e.preventDefault();
