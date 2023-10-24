@@ -23,7 +23,7 @@ from a dropdown list (as seen below), or just perform a full search by entering 
 
 Click on the magnifying glass to the right to initiate the search.\
 
-![Frontend](doc/img/Frontend.png)
+![Frontend](doc/images/Frontend.png)
 
 The search is then performed against the new search API.
 

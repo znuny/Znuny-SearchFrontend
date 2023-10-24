@@ -15,6 +15,7 @@
 # package Kernel::Output::HTML::Dashboard::TicketGeneric;
 package Kernel::Output::HTML::Dashboard::ES::TicketGeneric;
 use JSON;
+use utf8;
 # ---
 use strict;
 use warnings;
