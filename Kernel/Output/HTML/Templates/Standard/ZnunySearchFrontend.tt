@@ -10,17 +10,20 @@
     <div class="zs-box" id="zs-box">
         <div class="zs-dropdownwrap Hidden" ref="dropdownwrapbox">
             <button v-click-outside-options="HideOptionsDropdown"
-            [% IF !Data.Connection %] disabled = "disabled" [% END %]
+                :disabled="Disabled == 1"
                 class="zs-dropdowntoggle"
                 type="button"
                 @click="ToggleOptionsDropdown()"
             >
                 <span>[% Data.ActiveEngineName %]</span>
+                <div ref="connectIconWrap" class="Center">
                 [% IF Data.Connection %]
-                    <i style="color:green" class="fa fa-check"></i>
+                    <span v-if="SearchLoading" class="AJAXLoader zs-search-loader"></span>
+                    <span v-else="SearchLoading" class="fa fa-check zs-search-connect-icon" style="color:green"></span>
                 [% ELSE %]
-                    <i style="color:red" class="fa fa-times"></i>
+                    <span style="color:red" class="fa fa-times"></span>
                 [% END %]
+                </div>
                 <i ref="dropdownOptionsCaret" class="fa fa-caret-right"></i>
             </button>
             <div class="zs-scrollable-options Hidden" ref="dropdownOptions">
@@ -139,7 +142,7 @@
             </template>
         </form>
         <button v-if="Params.length > 1" class="zs-clear" type="button" @click="ClearAll">&times;</button>
-        <button [% IF !Data.Connection %] disabled = "disabled" [% END %] class="zs-submit" ref="searchformsubmitbutton" type="button" @click="Submit">
+        <button :disabled="Disabled == 1" class="zs-submit" ref="searchformsubmitbutton" type="button" @click="Submit">
             <i class="fa fa-search"></i>
         </button>
     </div>

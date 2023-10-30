@@ -210,13 +210,19 @@ li.zs-option-disabled {
 
 .zs-scrollable {
     padding:  3px;
-    display:  flex; 
+    display:  flex;
+    align-items: center;
     overflow: auto;
     width:  100%;
     overflow: auto;
     /* Hide scrollbar for IE, Edge and Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+}
+
+.zs-search-loader {
+    margin: 0px;
+    vertical-align: sub;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */

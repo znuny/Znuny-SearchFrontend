@@ -91,6 +91,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     FieldsOrder: null,
                     Params: [],
                     Loading: false,
+                    SearchLoading: false,
                     InputText: '',
                     InputParam: {type: 'input'},
                     CurrentKind: null,
@@ -104,6 +105,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     Operators: [],
                     ShowTime: 0,
                     MoreOptions: [],
+                    Disabled: !Core.Config.Get('SearchEngineConnection') || 0,
                 }
             },
             mounted () {
@@ -130,6 +132,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     config = Response.Config;
 
                     if (Response.NoConnection) {
+                        vm.Disabled = true;
                         return;
                     }
 
@@ -745,6 +748,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                 },
                 Submit(e) {
+                    var vm = this;
                     e.preventDefault();
 
                     if (this.InputText !== '' && this.CurrentLevel === 2) {
@@ -803,15 +807,17 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             };
                         }
                     }
-                    this.Loading = true;
 
-                    var StopLoading = () => {
-                        this.Loading = false;
-                    }
+                    this.Loading = true;
+                    this.SearchLoading = true
+                    this.Disabled = true;
 
                     Core.AJAX.FunctionCall(Core.Config.Get('Baselink') + 'Action=ZnunySearchFrontend;Subaction=Search', { QueryParams: JSON.stringify(QueryParams), Time: this.showTime, StartWindow: 0 } , function (Response) {
 
-                        StopLoading();
+                        vm.Loading = false;
+                        vm.SearchLoading = false;
+                        vm.Disabled = false;
+
                         if (Response) {
                             $('#TicketList').html(Response.HTML);
                             Core.Agent.Overview.Init();

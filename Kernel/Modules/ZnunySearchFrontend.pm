@@ -557,6 +557,11 @@ sub Run {
         my $Output = $LayoutObject->Header();
         $Output .= $LayoutObject->NavigationBar();
 
+        $LayoutObject->AddJSData(
+            Key   => 'SearchEngineConnection',
+            Value => $Self->{Connection},
+        );
+
         # build output
         $Output .= $LayoutObject->Output(
             TemplateFile => 'ZnunySearchFrontend',
