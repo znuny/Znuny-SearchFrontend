@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <otrs_package version="1.0">
     <Name>Znuny-SearchFrontend</Name>
-    <Version>6.5.2</Version>
+    <Version>7.0.1</Version>
     <Framework>7.0.x</Framework>
     <PackageRequired Version="7.0.1">Znuny-Search</PackageRequired>
     <Vendor>Znuny GmbH</Vendor>
     <URL>http://znuny.com/</URL>
     <License>GNU AFFERO GENERAL PUBLIC LICENSE Version 3, November 2007</License>
     <Description Lang="en">Frontend functionalities related to search engines.</Description>
+    <ChangeLog Version="7.0.1" Date="2023-12-29 13:50:15 +0100">Initial Release for 7.0.</ChangeLog>
     <ChangeLog Version="6.5.2" Date="2023-03-29 20:48:17 +0200">Updated release:&#13;
 Fixed "ResetCurrents" function to clear first level of invalid list. &#13;
 Fixed refreshing base input field position &amp; drop-down list. &#13;
