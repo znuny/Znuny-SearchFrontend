@@ -74,8 +74,7 @@
                     </a>
                 </div>
 [% RenderBlockEnd("ContentSmallRemove") %]
-                <div class="Clear"></div>
-            </div>
+                            </div>
             <h2 title="[% Translate(Data.Description) | html %]">[% Translate(Data.Title) | html %]</h2>
         </div>
         <div class="Content">
@@ -93,22 +92,19 @@
                         <div class="Field DontPrint">
                             [% Data.Option %]
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentSmallPreferencesItemOption") %]
+                        [% RenderBlockEnd("ContentSmallPreferencesItemOption") %]
 [% RenderBlockStart("ContentSmallPreferencesItemInput") %]
                         <label class="DontPrint" for="[% Data.NamePref | html %]">[% Translate(Data.Desc) | html %]:</label>
                         <div class="Field DontPrint">
                             <input type="text" class="W100pc" name="[% Data.NamePref | html %]" value="[% Data.Data | html %]"/>
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentSmallPreferencesItemInput") %]
+                        [% RenderBlockEnd("ContentSmallPreferencesItemInput") %]
 [% RenderBlockStart("ContentSmallPreferencesItemTextArea") %]
                         <label class="DontPrint" for="[% Data.NamePref | html %]">[% Translate(Data.Desc) | html %]:</label>
                         <div class="Field DontPrint">
                             <textarea rows="[% Data.Rows | html %]" cols="[% Data.Cols | html %]" name="[% Data.NamePref | html %]">[% Data.Data | html %]</textarea>
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentSmallPreferencesItemTextArea") %]
+                        [% RenderBlockEnd("ContentSmallPreferencesItemTextArea") %]
 [% RenderBlockEnd("ContentSmallPreferencesItem") %]
                         <div class="SpacingTop Center">
                             <button id="Dashboard[% Data.Name | html %]_submit" class="button DontPrint CallForAction Primary" type="submit" value="[% Translate("Save") | html %]"><span>[% Translate("Save Changes") | html %]</span></button>
@@ -141,8 +137,7 @@
             </li>
 [% RenderBlockEnd("MainMenuItem") %]
         </ul>
-        <div class="Clear"></div>
-    </div>
+            </div>
 [% RenderBlockEnd("MainMenu") %]
 
 [% RenderBlockStart("ContentLarge") %]
@@ -163,8 +158,7 @@
                     </a>
                 </div>
 [% RenderBlockEnd("ContentLargeRemove") %]
-                <div class="Clear"></div>
-            </div>
+                            </div>
             <h2 title="[% Translate(Data.Description) | html %]">[% Translate(Data.Title) | html %]</h2>
         </div>
 
@@ -183,22 +177,19 @@
                         <div class="DontPrint Field">
                             [% Data.Option %]
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentLargePreferencesItemOption") %]
+                        [% RenderBlockEnd("ContentLargePreferencesItemOption") %]
 [% RenderBlockStart("ContentLargePreferencesItemInput") %]
                         <label class="DontPrint" for="[% Data.NamePref | html %]">[% Translate(Data.Desc) | html %]:</label>
                         <div class="Field DontPrint">
                             <input type="text" class="W20pc" name="[% Data.NamePref | html %]" value="[% Data.Data | html %]"/>
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentLargePreferencesItemInput") %]
+                        [% RenderBlockEnd("ContentLargePreferencesItemInput") %]
 [% RenderBlockStart("ContentLargePreferencesItemTextArea") %]
                         <label class="DontPrint" for="[% Data.NamePref | html %]">[% Translate(Data.Desc) | html %]:</label>
                         <div class="Field DontPrint">
                             <textarea rows="[% Data.Rows | html %]" cols="[% Data.Cols %]" name="[% Data.NamePref | html %]">[% Data.Data | html %]</textarea>
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentLargePreferencesItemTextArea") %]
+                        [% RenderBlockEnd("ContentLargePreferencesItemTextArea") %]
 [% RenderBlockStart("ContentLargePreferencesItemAllocationList") %]
                         <input type="hidden" name="[% Data.NamePref | html %]" class="ColumnsJSON" value="[% Data.Columns | html %]" />
                         <input type="hidden" class="ColumnsEnabledJSON" value="[% Data.ColumnsEnabled | html %]" />
@@ -221,8 +212,7 @@
                                 <ul class="AllocationList Tablelike AssignedFields OrderNumbers" id="AssignedFields-Dashboard[% Data.Name | html %]"></ul>
                             </div>
                         </div>
-                        <div class="Clear"></div>
-[% RenderBlockEnd("ContentLargePreferencesItemAllocationList") %]
+                        [% RenderBlockEnd("ContentLargePreferencesItemAllocationList") %]
 [% RenderBlockStart("ContentLargePreferencesItemRawHTML") %]
                         [% Data.HTML %]
 [% RenderBlockEnd("ContentLargePreferencesItemRawHTML") %]
@@ -246,4 +236,3 @@
     </div>
 [% RenderBlockEnd("ContentLarge") %]
 </div>
-<div class="Clear"></div>

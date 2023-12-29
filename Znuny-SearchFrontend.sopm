@@ -2,8 +2,8 @@
 <otrs_package version="1.0">
     <Name>Znuny-SearchFrontend</Name>
     <Version>6.5.2</Version>
-    <Framework>6.5.x</Framework>
-    <PackageRequired Version="6.5.1">Znuny-Search</PackageRequired>
+    <Framework>7.0.x</Framework>
+    <PackageRequired Version="7.0.1">Znuny-Search</PackageRequired>
     <Vendor>Znuny GmbH</Vendor>
     <URL>http://znuny.com/</URL>
     <License>GNU AFFERO GENERAL PUBLIC LICENSE Version 3, November 2007</License>
