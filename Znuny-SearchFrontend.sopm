@@ -14,16 +14,16 @@ Fixed refreshing base input field position &amp; drop-down list. &#13;
 Filters no longer accept empty values; Removed unused functions.</ChangeLog>
     <ChangeLog Version="6.5.1" Date="2023-03-24 16:42:22 +0100">Initial release for Znuny 6.5.</ChangeLog>
     <Filelist>
+        <File Permission="660" Location="Custom/Kernel/Modules/AgentDashboardCommon.pm"/>
+        <File Permission="660" Location="Custom/Kernel/Output/HTML/Templates/Standard/AgentDashboardCommon.tt"/>
+        <File Permission="660" Location="Custom/Kernel/Output/HTML/TicketOverview/Small.pm"/>
         <File Permission="660" Location="Kernel/Config/Files/XML/ZnunySearchFrontend.xml"/>
         <File Permission="660" Location="Kernel/Language/de_ZnunySearchFrontend.pm"/>
         <File Permission="660" Location="Kernel/Modules/ZnunySearchFrontend.pm"/>
-        <File Permission="660" Location="var/httpd/htdocs/js/Core.Agent.Admin.ZnunySearchFrontend.js"/>
-        <File Permission="660" Location="var/httpd/htdocs/skins/Agent/default/css/Core.Agent.Admin.ZnunySearchFrontend.css"/>
-        <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/vue-3.2.45/vue.global.js"/>
-        <File Permission="660" Location="Kernel/Output/HTML/Templates/Standard/ZnunySearchFrontend.tt"/>
-        <File Permission="660" Location="Custom/Kernel/Output/HTML/TicketOverview/Small.pm"/>
-        <File Permission="660" Location="Custom/Kernel/Modules/AgentDashboardCommon.pm"/>
-        <File Permission="660" Location="Custom/Kernel/Output/HTML/Templates/Standard/AgentDashboardCommon.tt"/>
         <File Permission="660" Location="Kernel/Output/HTML/Dashboard/ES/TicketGeneric.pm"/>
+        <File Permission="660" Location="Kernel/Output/HTML/Templates/Standard/ZnunySearchFrontend.tt"/>
+        <File Permission="660" Location="var/httpd/htdocs/js/Core.Agent.Admin.ZnunySearchFrontend.js"/>
+        <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/vue-3.2.45/vue.global.js"/>
+        <File Permission="660" Location="var/httpd/htdocs/skins/Agent/default/css/Core.Agent.Admin.ZnunySearchFrontend.css"/>
     </Filelist>
 </otrs_package>

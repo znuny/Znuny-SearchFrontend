@@ -1,5 +1,4 @@
-Znuny-SearchFrontend
-====================
+# Functionality
 
 Znuny-SearchFrontend is a prototype add-on which showcases using the search API.
 
@@ -7,14 +6,6 @@ While it works quite well already, it will be updated as remaining issues are fi
 Furthermore, please see the "Future Features" for more details.
 
 Overtime, this package will evolve from a technical demonstration into a full-blown feature.
-
-Requirements
-============
-- Znuny 6.5+
-- [Znuny-Search](https://github.com/znuny/Znuny-Search/) add-on
-
-Functionality
-=============
 
 The new frontend has a more modern way to search for configured properties.
 
