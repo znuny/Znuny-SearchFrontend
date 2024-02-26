@@ -705,11 +705,13 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     }
                 },
                 MoveInputToCorrectPosition() {
-                    const labelEl = this.$refs.inputWrap[0];
-                    const scrollableEl = labelEl.closest('.zs-scrollable');
+                    if (this.$refs.inputWrap !== undefined && this.$refs.inputWrap.length > 0) {
+                        const labelEl = this.$refs.inputWrap[0];
+                        const scrollableEl = labelEl.closest('.zs-scrollable');
 
-                    if (scrollableEl !== undefined) {
-                        scrollableEl.scrollLeft = scrollableEl.scrollWidth;
+                        if (scrollableEl !== undefined) {
+                            scrollableEl.scrollLeft = scrollableEl.scrollWidth;
+                        }
                     }
                 },
                 HideDropdown(MoveInput) {
