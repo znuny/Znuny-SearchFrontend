@@ -150,8 +150,11 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                     $('#TicketList').html(Response.HTML);
                     Core.Agent.Overview.Init();
 
-                    if (Response.LastSearchQueryParams) {
+                    if (Response.LastSearchQueryParams && Object.keys(Response.LastSearchQueryParams).length > 0) {
                         SetProperties(Response.LookupFields, Response.LastSearchQueryParams);
+
+                        // emulate click if there are LastSearchQueryParams to repeat the last search request on page mount
+                        $(vm.$refs.searchformsubmitbutton).trigger('click');
                     } else {
                         SetProperties(Response.LookupFields);
                     }
