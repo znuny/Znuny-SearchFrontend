@@ -638,10 +638,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                     // pressing enter
                     if (e.which === 13) {
-                        if(this.CurrentLevel == 0){
-                            $(this.$refs.searchformsubmitbutton).trigger('click');
-                        }
-                        else if (this.CurrentLevel == 1) {
+                        if (this.CurrentLevel == 1) {
                             this.MoveInputToCorrectPosition();
                             this.ResetCurrents();
                             e.preventDefault();
@@ -672,6 +669,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                                 }
                             }
                         } else {
+                            // will be used when this.CurrentLevel < 1 || > 2
                             // support for fulltext parameter set when no filters were selected
                             if (this.InputText !== '') {
                                 if (this.Params.length > 1) {
@@ -694,9 +692,8 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                                             visible: true
                                         };
                                     }
-
+                                    $(this.$refs.searchformsubmitbutton).trigger('click');
                                 }
-
                             }
                         }
 
