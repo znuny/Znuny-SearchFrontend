@@ -653,9 +653,17 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
 
                             // prevent using empty value in the filters
                             if(this.InputText !== undefined && this.InputText !== ''){
-                                // prevent lookup fields filter to use value from the input
-                                if(!(this.Params[this.CurrentParamIndex].label !== undefined &&
-                                     this.LookupFields.includes(this.Params[this.CurrentParamIndex].label))){
+                                if(
+                                    // prevent lookup fields filter to use value from the input
+                                    !(
+                                        this.Params[this.CurrentParamIndex].label !== undefined &&
+                                        this.LookupFields.includes(this.Params[this.CurrentParamIndex].label)
+                                    )
+                                    ||
+
+                                    // do not prevent using value from the input when field is Fulltext
+                                    this.Params[this.CurrentParamIndex].label === 'Fulltext'
+                                ){
                                     // check if any values exists in the filter
                                     if (!this.Params[this.CurrentParamIndex].value) {
                                         // set filter
