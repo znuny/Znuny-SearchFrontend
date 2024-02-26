@@ -695,6 +695,9 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                                     }
                                     $(this.$refs.searchformsubmitbutton).trigger('click');
                                 }
+                            } else {
+                                // emulate click to repeat an already configured search request or send an empty request if level 0 input is empty and enter was pressed
+                                $(this.$refs.searchformsubmitbutton).trigger('click');
                             }
                         }
 
