@@ -221,6 +221,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             margin -= scrollableEl.scrollLeft;
                         }
                         this.$refs.dropdown[0].style.marginLeft = "calc("+margin+"px + "+spaces+"em)";
+                        this.$refs.dropdown[0].style.top = Math.round(document.getElementById('zs-box').getBoundingClientRect().top) + 'px';
                     });
                 },
                 CreateListLevel1 () {
