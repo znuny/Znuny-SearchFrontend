@@ -335,6 +335,7 @@ Core.Agent.Admin.ZnunySearchFrontend = (function(TargetNS) {
                             }
                             const offset = 5 + labelEl.offsetLeft + labelEl.clientWidth - scrollableOverflowL + 'px';
                             this.$refs.dropdown[0].style.marginLeft = offset;
+                            this.$refs.dropdown[0].style.top = Math.round(document.getElementById('zs-box').getBoundingClientRect().top) + 'px';
                         });
                     } else {
                         if (this.Params[this.CurrentParamIndex].value) {
