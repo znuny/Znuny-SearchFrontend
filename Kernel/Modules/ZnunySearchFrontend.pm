@@ -506,6 +506,26 @@ sub Run {
             NoCache     => 1,
         );
     }
+    elsif ( $Self->{Subaction} eq 'ClearRecentSearches' ) {
+        $UserObject->SetPreferences(
+            Key    => 'ZnunySearchFrontendSavedFilters',
+            Value  => '[]',
+            UserID => $Self->{UserID},
+        );
+
+        my $JSON = $LayoutObject->JSONEncode(
+            Data => {
+                Success => 1,
+            },
+        );
+
+        return $LayoutObject->Attachment(
+            ContentType => 'application/json; charset=' . $LayoutObject->{Charset},
+            Content     => $JSON,
+            Type        => 'inline',
+            NoCache     => 1,
+        );
+    }
     elsif ( grep { $Self->{Subaction} eq $_ } keys %{$ValidAPIFields} ) {
         my %Objects = $Self->ObjectsListGet(
             LookupField    => $Self->{Subaction},

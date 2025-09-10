@@ -20,7 +20,9 @@ Filters no longer accept empty values; Removed unused functions.</ChangeLog>
         <File Permission="660" Location="Kernel/Modules/ZnunySearchFrontend.pm"/>
         <File Permission="660" Location="var/httpd/htdocs/js/Core.Agent.Admin.ZnunySearchFrontend.js"/>
         <File Permission="660" Location="var/httpd/htdocs/skins/Agent/default/css/Core.Agent.Admin.ZnunySearchFrontend.css"/>
+        <File Permission="660" Location="var/httpd/htdocs/skins/Agent/default/css/thirdparty/znuny-searchfrontend-vue-new-0.2.0/znuny-searchfrontend-vue-new.css"/>
         <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/vue-3.2.45/vue.global.js"/>
+        <File Permission="660" Location="var/httpd/htdocs/js/thirdparty/znuny-searchfrontend-vue-new-0.2.0/znuny-search-frontend.umd.js"/>
         <File Permission="660" Location="Kernel/Output/HTML/Templates/Standard/ZnunySearchFrontend.tt"/>
         <File Permission="660" Location="Custom/Kernel/Output/HTML/TicketOverview/Small.pm"/>
         <File Permission="660" Location="Custom/Kernel/Modules/AgentDashboardCommon.pm"/>
