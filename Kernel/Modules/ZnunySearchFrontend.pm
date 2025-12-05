@@ -63,11 +63,11 @@ sub Run {
     my %ValidFieldsOrderConfig;
     my %ValidFieldsDefinition;
 
-    my $OperatorsConfig         = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchOperators')           // {};
-    my $ExcludedOperatorsConfig = $ConfigObject->Get('ZnunySearchFrontend::Loader::ExcludeOperators')          // {};
-    my $FieldsConfig            = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchFrontendFields')      // {};
-    my $FieldsOrderConfig       = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchFrontendFieldsOrder') // {};
-    my $DynamicFieldObject      = $Kernel::OM->Get('Kernel::System::DynamicField');
+    my $OperatorsConfig           = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchOperators')           // {};
+    my $ExcludedOperatorsConfig   = $ConfigObject->Get('ZnunySearchFrontend::Loader::ExcludeOperators')          // {};
+    my $FieldsConfig              = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchFrontendFields')      // {};
+    my $FieldsOrderConfig         = $ConfigObject->Get('ZnunySearchFrontend::Loader::SearchFrontendFieldsOrder') // {};
+    my $DynamicFieldObject        = $Kernel::OM->Get('Kernel::System::DynamicField');
     my $DynamicFieldBackendObject = $Kernel::OM->Get('Kernel::System::DynamicField::Backend');
 
     for my $OperatorConfig ( sort values %{$OperatorsConfig} ) {
@@ -669,7 +669,7 @@ sub _ShowTicketList {
         Output    => 1,
         TitleName => 'Search Results',
         OrderBy   => $Self->{SortParams}->{OrderBy} || '',
-        SortBy    => $Self->{SortParams}->{SortBy} || ''
+        SortBy    => $Self->{SortParams}->{SortBy}  || ''
     ) || '';
 
     return $Output;
